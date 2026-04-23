@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageTk
 import tkinter as tk
 import keyboard
 import pystray
@@ -62,7 +62,6 @@ def reset_cycle_states() -> None:
 def on_key(event: keyboard.KeyboardEvent) -> bool:
     global previous_letter
     global first_check
-    global first_shift_check
     global toggle_phonemes
 
     if event.event_type != keyboard.KEY_DOWN or "Unknown" in event.__str__():
@@ -94,7 +93,7 @@ def on_key(event: keyboard.KeyboardEvent) -> bool:
             show_toast("Phonetic keyboard enabled.")
         else:
             show_toast("Phonetic keyboard disabled.")
-            
+
     return True
 
 def on_key_release(event: keyboard.KeyboardEvent) -> None:
@@ -111,7 +110,6 @@ def toggle_phonetic_keyboard() -> None:
         show_toast("Phonetic keyboard enabled.")
     else:
         show_toast("Phonetic keyboard disabled.")
-
 
 # Display a small, non-intrusive popup message.
 def show_toast(message, duration=3):
@@ -143,14 +141,42 @@ def show_toast(message, duration=3):
     # Run popup in a separate thread so it doesn't block the main process
     threading.Thread(target=_popup, daemon=True).start()
 
+def create_tk():
+    global root
+    root = tk.Tk()
+    root.protocol("WM_DELETE_WINDOW", root.withdraw)  # Hide window instead of closing
+    root.withdraw()  # Hide the main window
+    root.configure(bg="white")
+    root.geometry("400x300")
+
+    info_text = ("Phonetic Keyboard\n\n"
+                 "Hold ALT GR and press the following keys to cycle through phonetic symbols:\n\n")
+    
+    image = Image.open('shortcuts.png')
+    shortcuts = ImageTk.PhotoImage(image)
+
+    label = tk.Label(root, text=info_text, bg="white", fg="black", font=("Segoe UI", 10), padx=10, pady=5)
+    label.pack()
+
+    image_label = tk.Label(root, image=shortcuts, bg="white")
+    image_label.image = shortcuts  # Keep a reference to prevent garbage collection
+    image_label.pack()
+
 if __name__ == '__main__': 
+    create_tk()
     system_tray = pystray.Icon('TypeIt', icon, 'Phonetic Keyboard')
 
     keyboard.hook(on_key, suppress=True)
     keyboard.on_release(on_key_release)
 
     system_tray.menu = pystray.Menu(
+        pystray.MenuItem('Info', lambda: root.deiconify()),
         pystray.MenuItem('Toggle', lambda: toggle_phonetic_keyboard()),
         pystray.MenuItem('Exit', lambda: system_tray.stop())
     )
-    system_tray.run()
+    
+    threading.Thread(target=system_tray.run, daemon=True).start()
+
+    root.mainloop()
+
+    
