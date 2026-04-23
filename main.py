@@ -1,6 +1,9 @@
 from PIL import Image
+import tkinter as tk
 import keyboard
 import pystray
+import threading
+import time
 
 cycle_map = {
     # --- ALT + [KEY] (Base Phonetics) ---
@@ -16,7 +19,7 @@ cycle_map = {
     37: ['|', '‖'],
     38: ['ɫ'],
     50: ['ɱ'],
-    49: ['ŋ', 'ɲ', 'ñ'],
+    49: ['ñ', 'ŋ', 'ɲ'],
     24: ['ɔ', 'ɒ'],
     19: ['ɾ'],
     31: ['ʃ'],
@@ -26,15 +29,17 @@ cycle_map = {
     44: ['ʒ'],
     17: ['ʷ'],
 
-    39: ['ː'],
+    52: ['ː'],
 
     2: ['|', '‖'],
     3: ['ˈ', 'ˌ'],
     4: ['̥', '̊'],
     5: ['̪'],
-    6: ['↗', '↘'],
-    7: ['→'],
-    8: ['ꜜ', 'ꜛ'],
+    6: ['̩'],
+    7: ['̚'],
+    8: ['↗', '↘'],
+    9: ['→'],
+    11: ['ꜜ', 'ꜛ'],
 
     77: ['→'],
 }
@@ -63,7 +68,8 @@ def on_key(event: keyboard.KeyboardEvent) -> bool:
     if event.event_type != keyboard.KEY_DOWN or "Unknown" in event.__str__():
         return True
 
-    if is_altgr_pressed():
+    altgr_pressed = is_altgr_pressed()
+    if altgr_pressed and event.scan_code != 28:
         for letter in cycle_map:
             if (letter == event.scan_code and toggle_phonemes):
                 symbol = cycle_map[letter][cycle_index[letter]]
@@ -81,8 +87,13 @@ def on_key(event: keyboard.KeyboardEvent) -> bool:
 
                 previous_letter = event.scan_code
                 return False
-    elif (event.scan_code == 28):
+    elif altgr_pressed and event.scan_code == 28:
         toggle_phonemes = not toggle_phonemes
+
+        if (toggle_phonemes):
+            show_toast("Phonetic keyboard enabled.")
+        else:
+            show_toast("Phonetic keyboard disabled.")
             
     return True
 
@@ -96,6 +107,41 @@ def on_key_release(event: keyboard.KeyboardEvent) -> None:
 def toggle_phonetic_keyboard() -> None:
     global toggle_phonemes
     toggle_phonemes = not toggle_phonemes
+    if (toggle_phonemes):
+        show_toast("Phonetic keyboard enabled.")
+    else:
+        show_toast("Phonetic keyboard disabled.")
+
+
+# Display a small, non-intrusive popup message.
+def show_toast(message, duration=3):
+    def _popup():
+        root = tk.Tk()
+        root.overrideredirect(True)  # Remove window borders
+        root.attributes("-topmost", True)  # Keep on top
+        root.attributes("-alpha", 0.9)  # Slight transparency
+
+        # Create label with message
+        label = tk.Label(root, text=message, bg="#333", fg="white",
+                         font=("Segoe UI", 10), padx=10, pady=5)
+        label.pack()
+
+        # Position bottom-right corner of the screen
+        root.update_idletasks()
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        window_width = root.winfo_width()
+        window_height = root.winfo_height()
+        x = screen_width - window_width - 20
+        y = screen_height - window_height - 50
+        root.geometry(f"+{x}+{y}")
+
+        # Auto-close after duration
+        root.after(duration * 1000, root.destroy)
+        root.mainloop()
+
+    # Run popup in a separate thread so it doesn't block the main process
+    threading.Thread(target=_popup, daemon=True).start()
 
 if __name__ == '__main__': 
     system_tray = pystray.Icon('TypeIt', icon, 'Phonetic Keyboard')
