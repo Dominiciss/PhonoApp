@@ -1,9 +1,15 @@
+# create .exe: pyinstaller --onefile --icon=icon.ico --windowed main.py
+
 from PIL import Image, ImageTk
 import tkinter as tk
 import keyboard
 import pystray
 import threading
 import time
+import logging
+
+#logging.basicConfig(filename="app.log", level=logging.INFO)
+#logging.info("App started")
 
 cycle_map = {
     # --- ALT + [KEY] (Base Phonetics) ---
@@ -152,7 +158,7 @@ def create_tk():
     info_text = ("Phonetic Keyboard\n\n"
                  "Hold ALT GR and press the following keys to cycle through phonetic symbols:\n\n")
     
-    image = Image.open('shortcuts.png')
+    image = Image.open('./shortcuts.png')
     shortcuts = ImageTk.PhotoImage(image)
 
     label = tk.Label(root, text=info_text, bg="white", fg="black", font=("Segoe UI", 10), padx=10, pady=5)
@@ -164,6 +170,7 @@ def create_tk():
 
 if __name__ == '__main__': 
     create_tk()
+    show_toast("Welcome to PhonoApp, your Phonetic Keyboard!")
     system_tray = pystray.Icon('TypeIt', icon, 'Phonetic Keyboard')
 
     keyboard.hook(on_key, suppress=True)
