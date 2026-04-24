@@ -1,10 +1,12 @@
 # create .exe: pyinstaller --onefile --icon=icon.ico --windowed main.py
 
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageOps
 import tkinter as tk
+from tkinter import ttk
 import keyboard
 import pystray
 import threading
+import numpy as np
 import time
 import logging
 
@@ -16,13 +18,12 @@ cycle_map = {
     30: ['ɑ', 'æ', 'ʌ'],
     48: ['β'],
     32: ['ð'],
-    18 : ['ə', 'ᵊ', 'ɛ', 'ɜ'],
+    18: ['ə', 'ᵊ', 'ɛ', 'ɜ'],
     33: ['‿'],
     34: ['ɣ'],
     35: ['ʰ'],
     23: ['ɪ'],
     36: ['ʲ'],
-    37: ['|', '‖'],
     38: ['ɫ'],
     50: ['ɱ'],
     49: ['ñ', 'ŋ', 'ɲ'],
@@ -43,9 +44,10 @@ cycle_map = {
     5: ['̪'],
     6: ['̩'],
     7: ['̚'],
-    8: ['↗', '↘'],
-    9: ['→'],
-    11: ['ꜜ', 'ꜛ'],
+    8: ['↗', '↘', 'ꜜ', 'ꜛ'],
+    9: ['ˊ', 'ˋ', 'ˏ', 'ˎ'],
+    10: ['ˇ', 'ˆ'],
+    11: ['<', '>'],
 
     77: ['→'],
 }
@@ -69,6 +71,7 @@ def on_key(event: keyboard.KeyboardEvent) -> bool:
     global previous_letter
     global first_check
     global toggle_phonemes
+    global system_tray
 
     if event.event_type != keyboard.KEY_DOWN or "Unknown" in event.__str__():
         return True
@@ -97,8 +100,10 @@ def on_key(event: keyboard.KeyboardEvent) -> bool:
 
         if (toggle_phonemes):
             show_toast("Phonetic keyboard enabled.")
+            system_tray.icon = icon
         else:
             show_toast("Phonetic keyboard disabled.")
+            system_tray.icon = ImageOps.grayscale(icon)
 
     return True
 
@@ -111,11 +116,14 @@ def on_key_release(event: keyboard.KeyboardEvent) -> None:
 
 def toggle_phonetic_keyboard() -> None:
     global toggle_phonemes
+    global system_tray
     toggle_phonemes = not toggle_phonemes
     if (toggle_phonemes):
         show_toast("Phonetic keyboard enabled.")
+        system_tray.icon = icon
     else:
         show_toast("Phonetic keyboard disabled.")
+        system_tray.icon = ImageOps.grayscale(icon)
 
 # Display a small, non-intrusive popup message.
 def show_toast(message, duration=3):
@@ -152,21 +160,103 @@ def create_tk():
     root = tk.Tk()
     root.protocol("WM_DELETE_WINDOW", root.withdraw)  # Hide window instead of closing
     root.withdraw()  # Hide the main window
+    root.attributes("-topmost", True)  # Keep on top
     root.configure(bg="white")
-    root.geometry("400x300")
+    root.title("Phonetic Shortcuts")
+    root.geometry("350x400")
 
-    info_text = ("Phonetic Keyboard\n\n"
-                 "Hold ALT GR and press the following keys to cycle through phonetic symbols:\n\n")
+    # --- 1. Styling the Table ---
+    # ttk requires a "Style" object to change colors and fonts
+    style = ttk.Style()
+    style.theme_use("clam")
+
+    # Configure the table colors and font
+    style.configure("Treeview",
+        background="white",
+        foreground="black",
+        rowheight=50,
+        fieldbackground="white",
+        font=("Segoe UI", 15)
+    )
+    style.configure("Treeview.Heading", font=("Segoe UI", 15, "bold"))
+
+    style.map("Treeview", background=[("selected", "#a56eb3")]) # Purple highlight when clicked
+
+    table_frame = tk.Frame(root, bg="white")
+    table_frame.pack(pady=20, padx=20, fill="both", expand=True)
+
+    table_scroll = tk.Scrollbar(table_frame)
+    table_scroll.pack(side="right", fill="y")
+
+    columns = ("shortcut", "symbols")
+
+    my_table = ttk.Treeview(table_frame, columns=columns, show="headings", yscrollcommand=table_scroll.set)
+    my_table.pack(side="left", fill="both", expand=True)
+
+    table_scroll.config(command=my_table.yview)
+
+    # --- 5. Format Columns and Headings ---
+    my_table.column("shortcut", width=120, anchor="center")
+    my_table.column("symbols", width=150, anchor="center")
+
+    my_table.heading("shortcut", text="Keys")
+    my_table.heading("symbols", text="Symbols")
+
+    # Define a tag for alternating row colors
+    my_table.tag_configure('oddrow', background="#f0f0f0")
+    my_table.tag_configure('evenrow', background="white")
+
+    # --- 6. Insert the Data ---
+    shortcut_data = [
+    ("Alt gr + A", "ɑ æ ʌ"),
+    ("Alt gr + B", "β"),
+    ("Alt gr + D", "ð"),
+    ("Alt gr + E", "ə ᵊ ɛ ɜ"),
+    ("Alt gr + F", "‿"),
+    ("Alt gr + G", "ɣ"),
+    ("Alt gr + H", "ʰ"),
+    ("Alt gr + I", "ɪ"),
+    ("Alt gr + J", "ʲ"),
+    ("Alt gr + L", "ɫ"),
+    ("Alt gr + M", "ɱ"),
+    ("Alt gr + N", "ñ ŋ ɲ"),
+    ("Alt gr + O", "ɔ, ɒ"),
+    ("Alt gr + R", "ɾ"),
+    ("Alt gr + S", "ʃ"),
+    ("Alt gr + T", "θ ʔ"),
+    ("Alt gr + U", "ʊ"),
+    ("Alt gr + V", "ʌ"),
+    ("Alt gr + Z", "ʒ"),
+    ("Alt gr + W", "ʷ"),
+    ("Alt gr + .", "ː"),
+    ("Alt gr + 1", "| ‖"),
+    ("Alt gr + 2", " ˈ ˌ "),
+    ("Alt gr + 3", " ̥  ̊ "),
+    ("Alt gr + 4", " ̪  "),
+    ("Alt gr + 5", " ̩ "),
+    ("Alt gr + 6", " ̚  "),
+    ("Alt gr + 7", "↗ ↘ ꜜ ꜛ"),
+    ("Alt gr + 8", " ˊ  ˋ  ˏ  ˎ "),
+    ("Alt gr + 9", " ˇ  ˆ "),
+    ("Alt gr + 0", "< >"),
+    ("Alt gr + →", "→")
+    ]
     
-    image = Image.open('./shortcuts.png')
-    shortcuts = ImageTk.PhotoImage(image)
+    # 8: ['↗', '↘', 'ꜜ', 'ꜛ'],
+    # 9: ['ˊ', 'ˋ', 'ˏ', 'ˎ'],
+    # 10: ['', 'ˇ', 'ˆ'],
+    # 11: ['<', '>'],
 
-    label = tk.Label(root, text=info_text, bg="white", fg="black", font=("Segoe UI", 10), padx=10, pady=5)
-    label.pack()
+    # Loop through the data and insert it row by row
+    for index, (key, symbols) in enumerate(shortcut_data):
+        if index % 2 == 0:
+            my_table.insert(parent="", index="end", iid=index, values=(key, symbols), tags=('evenrow',))
+        else:
+            my_table.insert(parent="", index="end", iid=index, values=(key, symbols), tags=('oddrow',))
 
-    image_label = tk.Label(root, image=shortcuts, bg="white")
-    image_label.image = shortcuts  # Keep a reference to prevent garbage collection
-    image_label.pack()
+def stop_app():
+    global root
+    root.destroy()
 
 if __name__ == '__main__': 
     create_tk()
@@ -179,7 +269,7 @@ if __name__ == '__main__':
     system_tray.menu = pystray.Menu(
         pystray.MenuItem('Info', lambda: root.deiconify()),
         pystray.MenuItem('Toggle', lambda: toggle_phonetic_keyboard()),
-        pystray.MenuItem('Exit', lambda: system_tray.stop())
+        pystray.MenuItem('Exit', lambda: stop_app())
     )
     
     threading.Thread(target=system_tray.run, daemon=True).start()
