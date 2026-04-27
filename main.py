@@ -126,7 +126,8 @@ def update_checker():
             
             if (user_answer):
                 webbrowser.open(f"https://github.com/Dominiciss/PhonoScribe/releases/tag/{github_version}")
-
+        else:
+            toast.show_toast("You have the latest version available!")
     else:
         repo = scripts.github.get_repo()
         toast.show_toast("Error produced when looking for updates. Do you have internet connection?")
