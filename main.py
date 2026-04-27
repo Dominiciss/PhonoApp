@@ -2,10 +2,12 @@
 
 # Dependency imports
 from PIL import Image
+from tkinter import messagebox
 import keyboard
 import pystray
 import threading
 import ctypes
+import webbrowser
 import time
 import logging
 
@@ -15,16 +17,19 @@ import scripts.toast as toast
 import scripts.menu as menu
 import scripts.toggle_keyboard as toggle_keyboard
 import scripts.cycle_map as cycle_map
+import scripts.github
 
 
 #logging.basicConfig(filename="app.log", level=logging.INFO)
 #logging.info("App started")
 
+VERSION = 'v1.0.1'
 APP_NAME = 'PhonoScribe'
 APP_ID = 'phonoscribe.transcription.utility'
 ICON = Image.open(get_url.resource_path('logo.png'))
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
 
+repo = scripts.github.get_repo()
 alt_pressed = False
 last_key = None
 toggle_phonemes = True
@@ -111,6 +116,21 @@ def call_toggle():
 
     toggle_phonemes = toggle_keyboard.toggle_phonetic_keyboard(toggle_phonemes, ICON, system_tray)
 
+def update_checker():
+    global repo
+
+    if (repo is not None):
+        github_version = scripts.github.get_latest(repo)
+        if (VERSION != github_version):
+            user_answer = messagebox.askyesno("Confirm Action", f"Do you want to download the version {github_version}?")
+            
+            if (user_answer):
+                webbrowser.open(f"https://github.com/Dominiciss/PhonoScribe/releases/tag/{github_version}")
+
+    else:
+        repo = scripts.github.get_repo()
+        toast.show_toast("Error produced when looking for updates. Do you have internet connection?")
+
 if __name__ == '__main__': 
     menu.create_tk()
     toast.show_toast("Welcome to PhonoScribe, your Phonetic Keyboard!\nIf you have any doubts, press Alt gr + F1 to open the main menu!", 6)
@@ -122,6 +142,7 @@ if __name__ == '__main__':
     system_tray.menu = pystray.Menu(
         pystray.MenuItem('Info', lambda: menu.root.deiconify()),
         pystray.MenuItem('Toggle', lambda: call_toggle()),
+        pystray.MenuItem('Check for updates', lambda: update_checker()),
         pystray.MenuItem('Exit', lambda: menu.root.destroy())
     )
     

@@ -1,8 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
-from svglib.svglib import svg2rlg
-from reportlab.graphics import renderPM
 
 import scripts.startup as startup
 import scripts.get_url as get_url
