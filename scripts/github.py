@@ -21,7 +21,7 @@ def get_latest(repo):
     if response.status_code == 200:
         data = response.json()
 
-        return data[-1]['name']
+        return data[0]['name']
     else:
         print(f"Error: {response.status_code}")
 
