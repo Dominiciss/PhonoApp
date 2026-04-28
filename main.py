@@ -2,12 +2,14 @@
 
 # Dependency imports
 from PIL import Image
-from tkinter import messagebox
+import tkinter
+from tkinter import messagebox, simpledialog
 import keyboard
 import pystray
 import threading
 import ctypes
 import webbrowser
+import pyperclip
 import time
 import logging
 
@@ -17,13 +19,13 @@ import scripts.toast as toast
 import scripts.menu as menu
 import scripts.toggle_keyboard as toggle_keyboard
 import scripts.cycle_map as cycle_map
+import scripts.transcriptor as transcriptor
 import scripts.github
-
 
 #logging.basicConfig(filename="app.log", level=logging.INFO)
 #logging.info("App started")
 
-VERSION = 'v1.0.1'
+VERSION = 'v1.1.0'
 APP_NAME = 'PhonoScribe'
 APP_ID = 'phonoscribe.transcription.utility'
 ICON = Image.open(get_url.resource_path('logo.png'))
@@ -63,11 +65,28 @@ def on_key(event: keyboard.KeyboardEvent) -> bool:
                 menu.root.withdraw()
             else:
                 menu.root.deiconify() 
+
+        if event.scan_code == 60:
+            menu.root.after(0, transcribe_popup)
     else:
         for key, data in cycle_map.cycle_map.items():
             data['symbol_state'] = 0
 
     return alt_pressed
+
+def transcribe_popup():
+    clipboard = pyperclip.paste()
+
+    if clipboard is not None:
+        toast.show_toast("Making transcription. Please wait...")
+        try:
+            transcription = transcriptor.get_ipa(clipboard)
+            pyperclip.copy(transcription)
+            toast.show_toast("Transcription copied to the clipboard!")
+        except:
+            toast.show_toast("Transcription failed. Do you have internet connection?")
+    else:
+        toast.show_toast("Clipboard did not have information")
 
 def write_symbol(letter):
     global first_check
@@ -132,8 +151,9 @@ def update_checker():
         repo = scripts.github.get_repo()
         toast.show_toast("Error produced when looking for updates. Do you have internet connection?")
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     menu.create_tk()
+    toast.popup_start()
     toast.show_toast("Welcome to PhonoScribe, your Phonetic Keyboard!\nIf you have any doubts, press Alt gr + F1 to open the main menu!", 6)
     system_tray = pystray.Icon('PhonoScribe', ICON, 'PhonoScribe')
 
