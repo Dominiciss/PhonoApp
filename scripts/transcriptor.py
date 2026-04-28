@@ -11,7 +11,7 @@ def get_ipa(text, dialect='br'):
         "submit": "Show transcription",
         "dialect": dialect,           # 'am' = American, 'br' = British
         "output_mode": "ipa",
-        "weak_forms": "on",           # Optional: enables weak forms
+        "weak_forms": "off",           # Optional: enables weak forms
         "pre_positions": "off",         # Optional: enables parentheses
         "lines": "one"
     }
