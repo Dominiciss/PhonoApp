@@ -1,5 +1,4 @@
 import requests
-import logging
 
 def get_repo():
     """Gets the repository where PhonoScribe resides"""
