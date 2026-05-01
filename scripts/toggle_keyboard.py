@@ -14,6 +14,11 @@ def get_disabled_icon(icon):
     return disabled_img
 
 def toggle_phonetic_keyboard(toggle_phonemes, icon, system_tray) -> None:
+    """Toggles the functionality of the shortcuts
+    
+    :param toggle_phonemes: decides whether or not to disable or enable the shorcuts
+    :param icon: app icon
+    :param system_tray: the system tray in which the icon will be modified"""
     toggle_phonemes = not toggle_phonemes
     if (toggle_phonemes):
         toast.show_toast("Phonetic keyboard enabled.")

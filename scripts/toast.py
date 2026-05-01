@@ -46,6 +46,10 @@ def popup_start():
 
 # Display a small, non-intrusive popup message.
 def show_toast(message, duration=3):
+    """Shows toast notifications for app information
+    
+    :param message: message to show
+    :param duration: the number of seconds that the message will show for, default 3"""
     def _popup():
         global popup
         global label
@@ -61,8 +65,8 @@ def show_toast(message, duration=3):
         screen_height = popup.winfo_screenheight()
         window_width = popup.winfo_reqwidth()
         window_height = popup.winfo_reqheight()
-        x = screen_width - window_width - 40
-        y = screen_height - window_height - 80
+        x = screen_width - window_width - 20
+        y = screen_height - window_height - 55
         popup.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
         popup.deiconify()

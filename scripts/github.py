@@ -1,13 +1,12 @@
 import requests
+import logging
 
 def get_repo():
+    """Gets the repository where PhonoScribe resides"""
     response = requests.get("https://api.github.com/repos/Dominiciss/PhonoScribe")
 
     if response.status_code == 200:
         data = response.json()
-        #print(f"Repo Name: {data['full_name']}")
-        #print(f"Stars: {data['stargazers_count']}")
-        #print(f"Open Issues: {data['open_issues_count']}")
 
         return data
     else:
@@ -16,6 +15,7 @@ def get_repo():
         return None
 
 def get_latest(repo):
+    """Gets the latest version of PhonoScribe inside GitHub"""
     response = requests.get(repo['tags_url'])
 
     if response.status_code == 200:

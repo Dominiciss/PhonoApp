@@ -6,6 +6,7 @@ import scripts.startup as startup
 import scripts.get_url as get_url
 
 def create_tk():
+    """Creates the main GUI where you can find basic information about shortcuts, author and startup"""
     global root
     root = tk.Tk()
     root.protocol("WM_DELETE_WINDOW", root.withdraw)  # Hide window instead of closing

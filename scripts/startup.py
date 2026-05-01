@@ -14,6 +14,7 @@ def get_app_path():
     return f'"{script_path}"'
 
 def check_startup_status():
+    """Checks whether PhonoScribe.exe executes at system start"""
     try:
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_READ)
         winreg.QueryValueEx(key, APP_NAME)
@@ -23,6 +24,7 @@ def check_startup_status():
         return False
 
 def toggle_startup(enable):
+    """Toggles the execution of PhonoScribe.exe at system start"""
     key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_SET_VALUE)
     
     if enable:

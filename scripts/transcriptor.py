@@ -2,6 +2,11 @@ import requests
 from bs4 import BeautifulSoup
 
 def get_ipa(text, dialect='br'):
+    """Gets the api for phonetic transcriptions 'to phonetics' that enables automatic transcriptions
+    
+    :param text: text to transcribe
+
+    :param dialect: default 'br' = 'british', also 'am' = American"""
     URL = "https://tophonetics.com/"
     session = requests.Session()
     session.get(URL)

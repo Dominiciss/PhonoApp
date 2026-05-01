@@ -1,7 +1,7 @@
 global cycle_map
 
 cycle_map = {
-    # --- ALT + [KEY] (Base Phonetics) ---
+    # --- ALT + [KEY] ---
     'a': {
         'letter': 'a',
         'scan_code': 30,
