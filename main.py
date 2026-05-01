@@ -10,7 +10,6 @@ import ctypes
 import webbrowser
 import pyperclip
 import time
-import logging
 
 # Own scripts
 import scripts.get_url as get_url
