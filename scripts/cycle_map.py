@@ -171,6 +171,12 @@ cycle_map = {
         'symbol_state': 0,
         'symbols': ['ː']
         },
+    '-': {
+        'letter': '-',
+        'scan_code': 53,
+        'symbol_state': 0,
+        'symbols': ['→']
+        },
 
     '1': {
         'letter': '1',
@@ -231,12 +237,5 @@ cycle_map = {
         'scan_code': 11,
         'symbol_state': 0,
         'symbols': ['ø']
-        },
-
-    'right arrow': {
-        'letter': 'right arrow',
-        'scan_code': 77,
-        'symbol_state': 0,
-        'symbols': ['→']
         }
 }

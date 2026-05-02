@@ -128,7 +128,7 @@ def create_tk():
     ("Alt gr + 8", " ˊ  ˋ  ˏ  ˎ "),
     ("Alt gr + 9", " ˇ  ˆ "),
     ("Alt gr + 0", "ø"),
-    ("Alt gr + →", "→")
+    ("Alt gr + -", "→")
     ]
 
     # Loop through the data and insert it row by row
