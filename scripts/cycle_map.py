@@ -54,7 +54,7 @@ cycle_map = {
         'letter': 'i',
         'scan_code': 23,
         'symbol_state': 0,
-        'symbols': ['ɪ', 'ɨ', 'ɪ̈']
+        'symbols': ['ɪ', 'ɨ']
         },
     'j': {
         'letter': 'j',

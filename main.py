@@ -1,6 +1,8 @@
 # create .exe: pyinstaller --onefile --icon=logo.png --add-data="logo.png;." --name=PhonoScribe --windowed main.py
 
 # Dependency imports
+import os
+
 from PIL import Image
 from tkinter import messagebox
 from keyboard import KeyboardEvent
@@ -11,6 +13,7 @@ import ctypes
 import webbrowser
 import pyperclip
 import time
+import psutil
 
 # Own scripts
 import scripts.get_url as get_url
@@ -30,6 +33,7 @@ ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
 last_key = None
 toggle_phonemes = True
 first_check = True
+enter_listener = None
 listeners = []
 
 def transcribe_popup():
@@ -39,7 +43,6 @@ def transcribe_popup():
     clipboard = pyperclip.paste()
 
     if clipboard is not None:
-        toast.show_toast("Making transcription. Please wait...")
         try:
             transcription = transcriptor.get_ipa(clipboard)
             pyperclip.copy(transcription)
@@ -59,26 +62,31 @@ def start_transcription(event: KeyboardEvent):
     menu.root.after(0, transcribe_popup)
 
 def on_alt(event: KeyboardEvent):
-    global listeners
+    global listeners, enter_listener
     global first_check
+    global toggle_phonemes
 
     if event.event_type == keyboard.KEY_DOWN:
-        listeners.append(keyboard.on_press_key(59, toggle_window, suppress=True))
-        listeners.append(keyboard.on_press_key(60, start_transcription, suppress=True))
-        for data in cycle_map.cycle_map.values():
-            listeners.append(keyboard.on_press_key(data['scan_code'], write_symbol, suppress=True))
+        enter_listener = keyboard.on_press_key(28, lambda e: call_toggle(), suppress=True)
+        if toggle_phonemes:
+            listeners.append(keyboard.on_press_key(59, toggle_window, suppress=True))
+            listeners.append(keyboard.on_press_key(60, start_transcription, suppress=True))
+            for data in cycle_map.cycle_map.values():
+                listeners.append(keyboard.on_press_key(data['scan_code'], write_symbol, suppress=True))
     elif event.event_type == keyboard.KEY_UP:
-        first_check = True
-        for data in cycle_map.cycle_map.values():
-            data['symbol_state'] = 0
-        for item in listeners:
-            keyboard.unhook(item)
-        listeners = []
+        keyboard.unhook(enter_listener)
+        if toggle_phonemes:
+            first_check = True
+            for data in cycle_map.cycle_map.values():
+                data['symbol_state'] = 0
+            if listeners != []:
+                for item in listeners:
+                    keyboard.unhook(item)
+                listeners = []
 
 def write_symbol(event: KeyboardEvent):
     """Writes the assigned symbol for a specific letter as shown in cycle_map.py"""
-    global first_check
-    global last_key
+    global first_check, last_key
 
     for data in cycle_map.cycle_map.values():
         if data['scan_code'] == event.scan_code:
@@ -114,12 +122,21 @@ def write_symbol(event: KeyboardEvent):
 
 def call_toggle():
     """Changes the state of toggle_phonemes and enables/disables the phonetic keyboard"""
-    global ICON
-    global toggle_phonemes
-    global system_tray
+    global ICON, toggle_phonemes, system_tray, alt_listener, first_check, listeners
 
-    start_time = time.perf_counter()
-    print("Toggle process started...")
+    if toggle_phonemes:
+        keyboard.unhook(alt_listener)
+        alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=False)
+        first_check = True
+        for data in cycle_map.cycle_map.values():
+            data['symbol_state'] = 0
+        if listeners != []:
+            for item in listeners:
+                keyboard.unhook(item)
+            listeners = []
+    else:
+        keyboard.unhook(alt_listener)
+        alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=True)
 
     toggle_phonemes = toggle_keyboard.toggle_phonetic_keyboard(toggle_phonemes, ICON, system_tray)
 
@@ -147,7 +164,44 @@ def update_checker():
         print(f"Couldn't connect with GitHub's api. Time ellapsed: {time.perf_counter() - start_time}")
         toast.show_toast("Error produced when looking for updates. Do you have internet connection?")
 
+def kill_previous_instances():
+    """Kills previous instances of the app to avoid multiple instances running at the same time"""
+    current_pid = os.getpid()
+    
+    try:
+        current_process = psutil.Process(current_pid)
+        current_exe = current_process.exe()
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        return
+
+    for proc in psutil.process_iter(['pid', 'name', 'exe']):
+        try:
+            if proc.info['exe'] == current_exe and proc.info['pid'] != current_pid:
+                print(f"Found older instance (PID: {proc.info['pid']}). Terminating...")
+                
+                proc.terminate()
+                proc.wait(timeout=3)
+                
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+        except psutil.TimeoutExpired:
+            print("Process did not terminate cleanly. Forcing kill...")
+            proc.kill()
+
+def on_closing():
+    """Closes the app when the user clicks the 'X' button in the menu window"""
+    global system_tray
+
+    if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        system_tray.stop()
+        menu.root.destroy()
+
 if __name__ == '__main__':
+    global alt_listener
+    alt_listener = None
+
+    kill_previous_instances()
+
     menu.create_tk()
     toast.popup_start()
     toast.show_toast("Welcome to PhonoScribe, your Phonetic Keyboard!\nIf you have any doubts, press Alt gr + F1 to open the main menu!", 6)
@@ -155,14 +209,13 @@ if __name__ == '__main__':
 
     print("App started")
 
-    # keyboard.add_hotkey("alt gr + enter", call_toggle, suppress=True)
-    keyboard.hook_key("alt gr", on_alt, suppress=True) 
+    alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=True)
 
     system_tray.menu = pystray.Menu(
         pystray.MenuItem('Info', lambda: menu.root.deiconify()),
         pystray.MenuItem('Toggle', lambda: call_toggle()),
         pystray.MenuItem('Check for updates', lambda: update_checker()),
-        pystray.MenuItem('Exit', lambda: menu.root.destroy())
+        pystray.MenuItem('Exit', lambda: on_closing())
     )
     
     threading.Thread(target=system_tray.run, daemon=True).start()
