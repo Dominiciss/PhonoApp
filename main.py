@@ -3,6 +3,7 @@
 # Dependency imports
 from PIL import Image
 from tkinter import messagebox
+from keyboard import KeyboardEvent
 import keyboard
 import pystray
 import threading
@@ -20,7 +21,7 @@ import scripts.cycle_map as cycle_map
 import scripts.transcriptor as transcriptor
 import scripts.github
 
-VERSION = 'v1.2.0'
+VERSION = 'v1.2.2'
 APP_NAME = 'PhonoScribe'
 APP_ID = 'phonoscribe.transcription.utility'
 ICON = Image.open(get_url.resource_path('logo.png'))
@@ -29,6 +30,7 @@ ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
 last_key = None
 toggle_phonemes = True
 first_check = True
+listeners = []
 
 def transcribe_popup():
     """Shortcut for transcribing and pasting the text in the user's clipboard"""
@@ -50,10 +52,37 @@ def transcribe_popup():
         toast.show_toast("Clipboard did not have information")
         print(f"Transcription failed. Clipboard did not have information. Time ellapsed: {time.perf_counter() - start_time}")
 
-def write_symbol(letter):
+def toggle_window(event: KeyboardEvent):
+    menu.root.withdraw() if menu.root.winfo_viewable() else menu.root.deiconify()
+
+def start_transcription(event: KeyboardEvent):
+    menu.root.after(0, transcribe_popup)
+
+def on_alt(event: KeyboardEvent):
+    global listeners
+    global first_check
+
+    if event.event_type == keyboard.KEY_DOWN:
+        listeners.append(keyboard.on_press_key(59, toggle_window, suppress=True))
+        listeners.append(keyboard.on_press_key(60, start_transcription, suppress=True))
+        for data in cycle_map.cycle_map.values():
+            listeners.append(keyboard.on_press_key(data['scan_code'], write_symbol, suppress=True))
+    elif event.event_type == keyboard.KEY_UP:
+        first_check = True
+        for data in cycle_map.cycle_map.values():
+            data['symbol_state'] = 0
+        for item in listeners:
+            keyboard.unhook(item)
+        listeners = []
+
+def write_symbol(event: KeyboardEvent):
     """Writes the assigned symbol for a specific letter as shown in cycle_map.py"""
     global first_check
     global last_key
+
+    for data in cycle_map.cycle_map.values():
+        if data['scan_code'] == event.scan_code:
+            letter = data
 
     start_time = time.perf_counter()
     print("Symbol writing started")
@@ -83,16 +112,6 @@ def write_symbol(letter):
     last_key = letter['scan_code']
     first_check = False
 
-def on_alt_released(event: keyboard.KeyboardEvent) -> None:
-    """On alt release, resets symbols state and its bools"""
-    global first_check
-    global last_key
-
-    first_check = True
-    last_key = None
-    for letter, data in cycle_map.cycle_map.items():
-        data['symbol_state'] = 0
-
 def call_toggle():
     """Changes the state of toggle_phonemes and enables/disables the phonetic keyboard"""
     global ICON
@@ -101,22 +120,6 @@ def call_toggle():
 
     start_time = time.perf_counter()
     print("Toggle process started...")
-
-    if toggle_phonemes:
-        keyboard.remove_hotkey("alt gr + f1")
-        keyboard.remove_hotkey("alt gr + f2")
-        for letter, data in cycle_map.cycle_map.items():
-            data['symbol_state'] = 0
-            hotkey_str = f"alt gr + {data['letter']}"
-            keyboard.remove_hotkey(hotkey_str)
-        print(f"Symbols disabled. Time ellapsed: {time.perf_counter() - start_time}")
-    else:
-        keyboard.add_hotkey("alt gr + f1", lambda: menu.root.withdraw() if menu.root.winfo_viewable() else menu.root.deiconify(), suppress=True)
-        keyboard.add_hotkey("alt gr + f2", lambda: menu.root.after(0, transcribe_popup), suppress=True)
-        for letter, data in cycle_map.cycle_map.items():
-            hotkey_str = f"alt gr + {data['letter']}"
-            keyboard.add_hotkey(hotkey_str, write_symbol, args=[data], suppress=True)
-        print(f"Symbols enabled. Time ellapsed: {time.perf_counter() - start_time}")
 
     toggle_phonemes = toggle_keyboard.toggle_phonetic_keyboard(toggle_phonemes, ICON, system_tray)
 
@@ -152,13 +155,8 @@ if __name__ == '__main__':
 
     print("App started")
 
-    keyboard.on_release_key("alt gr", on_alt_released, suppress=False)
-    keyboard.add_hotkey("alt gr + enter", call_toggle, suppress=True)
-    keyboard.add_hotkey("alt gr + f1", lambda: menu.root.withdraw() if menu.root.winfo_viewable() else menu.root.deiconify(), suppress=True)
-    keyboard.add_hotkey("alt gr + f2", lambda: menu.root.after(0, transcribe_popup), suppress=True)
-    for letter, data in cycle_map.cycle_map.items():
-        hotkey_str = f"alt gr + {data['letter']}"
-        keyboard.add_hotkey(hotkey_str, write_symbol, args=[data], suppress=True)
+    # keyboard.add_hotkey("alt gr + enter", call_toggle, suppress=True)
+    keyboard.hook_key("alt gr", on_alt, suppress=True) 
 
     system_tray.menu = pystray.Menu(
         pystray.MenuItem('Info', lambda: menu.root.deiconify()),
