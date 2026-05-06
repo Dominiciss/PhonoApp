@@ -61,12 +61,33 @@ def toggle_window(event: KeyboardEvent):
 def start_transcription(event: KeyboardEvent):
     menu.root.after(0, transcribe_popup)
 
+def safe_unhook(hook):
+    """Unhooks a keyboard hook, ignoring errors if already removed"""
+    try:
+        keyboard.unhook(hook)
+    except Exception:
+        pass
+
+def clear_listeners():
+    """Force-clears all active listeners and resets state"""
+    global listeners, enter_listener, first_check
+    if enter_listener is not None:
+        safe_unhook(enter_listener)
+        enter_listener = None
+    for item in listeners:
+        safe_unhook(item)
+    listeners = []
+    first_check = True
+    for data in cycle_map.cycle_map.values():
+        data['symbol_state'] = 0
+
 def on_alt(event: KeyboardEvent):
     global listeners, enter_listener
     global first_check
     global toggle_phonemes
 
     if event.event_type == keyboard.KEY_DOWN:
+        clear_listeners()
         enter_listener = keyboard.on_press_key(28, lambda e: call_toggle(), suppress=True)
         if toggle_phonemes:
             listeners.append(keyboard.on_press_key(59, toggle_window, suppress=True))
@@ -74,15 +95,7 @@ def on_alt(event: KeyboardEvent):
             for data in cycle_map.cycle_map.values():
                 listeners.append(keyboard.on_press_key(data['scan_code'], write_symbol, suppress=True))
     elif event.event_type == keyboard.KEY_UP:
-        keyboard.unhook(enter_listener)
-        if toggle_phonemes:
-            first_check = True
-            for data in cycle_map.cycle_map.values():
-                data['symbol_state'] = 0
-            if listeners != []:
-                for item in listeners:
-                    keyboard.unhook(item)
-                listeners = []
+        clear_listeners()
 
 def write_symbol(event: KeyboardEvent):
     """Writes the assigned symbol for a specific letter as shown in cycle_map.py"""
@@ -127,13 +140,7 @@ def call_toggle():
     if toggle_phonemes:
         keyboard.unhook(alt_listener)
         alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=False)
-        first_check = True
-        for data in cycle_map.cycle_map.values():
-            data['symbol_state'] = 0
-        if listeners != []:
-            for item in listeners:
-                keyboard.unhook(item)
-            listeners = []
+        clear_listeners()
     else:
         keyboard.unhook(alt_listener)
         alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=True)
