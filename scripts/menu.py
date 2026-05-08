@@ -11,7 +11,6 @@ def create_tk():
     root = tk.Tk()
     root.protocol("WM_DELETE_WINDOW", root.withdraw)  # Hide window instead of closing
     root.withdraw()  # Hide the main window
-    root.attributes("-topmost", True)  # Keep on top
     root.configure(bg="white")
     root.title("PhonoScribe")
     root.geometry("350x600")

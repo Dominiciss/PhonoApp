@@ -27,14 +27,22 @@ import scripts.cycle_map as cycle_map
 import scripts.transcriptor as transcriptor
 import scripts.github
 
-VERSION = 'v1.3.1'
+VERSION = 'v1.3.2'
 APP_NAME = 'PhonoScribe'
 APP_ID = 'phonoscribe.transcription.utility'
 ICON = Image.open(get_url.resource_path('logo.png'))
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
 
+app_data = os.getenv('APPDATA') 
+appdata_dir = os.path.join(app_data, 'PhonoScribe')
+
+os.makedirs(appdata_dir, exist_ok=True)
+
+log_file = os.path.join(appdata_dir, 'info.log')
+settings_file = os.path.join(appdata_dir, 'settings.json')
+
 logging.basicConfig(
-    filename='info.log', 
+    filename=log_file, 
     level=logging.INFO, 
     format='%(asctime)s | %(levelname)s | %(message)s'
 )

@@ -2,6 +2,8 @@ import sys
 import os
 import json
 
+settings_file = None
+
 def resource_path(relative_path):
     """Get absolute path to resource"""
     try:
@@ -23,12 +25,12 @@ def get_base_dir():
         # We are running as a normal Python script
         return os.path.dirname(os.path.abspath("main.py"))
 
-SAVE_FILE_PATH = os.path.join(get_base_dir(), 'settings.json')
-
 def load_variables():
     """Load variables from the JSON file, or return defaults if it doesn't exist."""
-    if os.path.exists(SAVE_FILE_PATH):
-        with open(SAVE_FILE_PATH, 'r') as file:
+    from main import settings_file
+
+    if os.path.exists(settings_file):
+        with open(settings_file, 'r') as file:
             return json.load(file)
     else:
         # Default variables if the file hasn't been created yet
@@ -39,5 +41,7 @@ def load_variables():
 
 def save_variables(data):
     """Save the dictionary of variables back to the JSON file."""
-    with open(SAVE_FILE_PATH, 'w') as file:
+    from main import settings_file
+
+    with open(settings_file, 'w') as file:
         json.dump(data, file, indent=4)

@@ -1,4 +1,5 @@
 import requests
+import logging
 from bs4 import BeautifulSoup
 
 def get_ipa(text, dialect='br'):
@@ -37,7 +38,11 @@ def get_ipa(text, dialect='br'):
         if transcription:
             return transcription.get_text(separator=" ").strip()
         else:
-            return "Transcription failed. The site might be blocking the request."
-
+            logging.info("Transcription failed. The site might be blocking the request.")
+            print("Transcription failed. The site might be blocking the request.")
+            raise Exception("Transcription failed. The site might be blocking the request.")
     except Exception as e:
-        return f"Error: {e}"
+        logging.info(f"Error in transcription: {e}")
+        print(f"Error in transcription: {e}")
+    
+        raise e
