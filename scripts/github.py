@@ -1,4 +1,5 @@
 import requests
+import logging
 
 def get_repo():
     """Gets the repository where PhonoScribe resides"""
@@ -9,6 +10,7 @@ def get_repo():
 
         return data
     else:
+        logging.error(f"Error: {response.status_code}")
         print(f"Error: {response.status_code}")
 
         return None
@@ -22,6 +24,7 @@ def get_latest(repo):
 
         return data[0]['name']
     else:
+        logging.error(f"Error: {response.status_code}")
         print(f"Error: {response.status_code}")
 
         return None

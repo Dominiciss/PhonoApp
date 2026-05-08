@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <style>
+  .container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    column-gap: 15px;
+    row-gap: 5px;
+  }
+  .item {
+    display: flex;
+    align-items: center;
+  }
+  .shortcut {
+    font-size: 20px;
+    background-color: rgb(231, 231, 231);
+    border: 3px solid rgb(196, 196, 196);
+    border-radius: 5px;
+    padding: 5px;
+    margin: 0 5px;
+    white-space: nowrap;
+  }
+  .symbols {
+    font-size: 15px;
+    border-top: .1px solid rgb(230, 230, 230);
+    border-bottom: 3px solid rgb(196, 196, 196);
+    border-radius: 5px;
+    padding: 10px;
+    margin: 0 5px;
+  }
+  .symbols.liaison {
+    padding: 10px 30px 10px 10px;
+  }
+  .symbols.accents {
+    padding: 10px 0 10px 10px;
+    letter-spacing: 10px;
+    font-size: 20px;
+  }
+</style>
+
+<div class="container">
+  <div class="item">
+    <div class="shortcut">alt gr + F1</div>
+    <div class="symbols">menu</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + F2</div>
+    <div class="symbols">transcribe</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + a</div>
+    <div class="symbols">ɑ æ ʌ ɐ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + b</div>
+    <div class="symbols">β ɓ ʙ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + c</div>
+    <div class="symbols">ç ɕ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + d</div>
+    <div class="symbols">ð ɖ ɗ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + e</div>
+    <div class="symbols">ə ɜ ᵊ ɘ ɛ ɝ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + f</div>
+    <div class="symbols liaison">‿  ͡   ͜  </div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + g</div>
+    <div class="symbols">ɣ ɠ ɢ ʛ ɡ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + h</div>
+    <div class="symbols">ʰ ʱ ħ ɦ ɥ ɧ ʜ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + i</div>
+    <div class="symbols">ɪ ɨ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + j</div>
+    <div class="symbols">ʲ ʝ ɟ ʄ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + k</div>
+    <div class="symbols">ǀ ǁ ǂ ǃ ʘ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + l</div>
+    <div class="symbols">ɫ ɭ ɬ ʟ ɮ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + m</div>
+    <div class="symbols">ɱ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + n</div>
+    <div class="symbols">ñ ŋ ɲ ɳ ɴ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + o</div>
+    <div class="symbols">ɔ ɒ œ ɶ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + p</div>
+    <div class="symbols">ɸ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + q</div>
+    <div class="symbols">ˈ ˌ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + r</div>
+    <div class="symbols">ɾ ɹ ʁ ʀ ɻ ɽ ɺ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + s</div>
+    <div class="symbols">ʃ ʂ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + t</div>
+    <div class="symbols">θ ʔ ʈ ʕ ʡ ʢ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + u</div>
+    <div class="symbols">ʊ ʉ ü</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + v</div>
+    <div class="symbols">ʌ ʋ ⱱ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + w</div>
+    <div class="symbols">ʷ ɯ ʍ ɰ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + x</div>
+    <div class="symbols">χ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + y</div>
+    <div class="symbols">ɣ ʎ ʏ ɤ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + z</div>
+    <div class="symbols">ʒ ʐ ʑ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + ,</div>
+    <div class="symbols accents"> ́  ̀  </div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + .</div>
+    <div class="symbols">ː</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + -</div>
+    <div class="symbols">→</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + 1</div>
+    <div class="symbols">| ‖</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + 2</div>
+    <div class="symbols">&lt; &gt;</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + 3</div>
+    <div class="symbols">̥ ̊</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + 4</div>
+    <div class="symbols">̪</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + 5</div>
+    <div class="symbols">̩</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + 6</div>
+    <div class="symbols">̚</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + 7</div>
+    <div class="symbols">↗ ↘ ꜜ ꜛ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + 8</div>
+    <div class="symbols">ˊ ˋ ˏ ˎ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + 9</div>
+    <div class="symbols">ˇ ˆ</div>
+  </div>
+  <div class="item">
+    <div class="shortcut">alt gr + 0</div>
+    <div class="symbols">ø</div>
+  </div>
+</div>
+</body>
+</html>

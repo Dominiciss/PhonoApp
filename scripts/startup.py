@@ -1,6 +1,7 @@
 import sys
 import os
 import winreg
+import logging
 
 APP_NAME = "PhonoScribe"
 
@@ -30,10 +31,12 @@ def toggle_startup(enable):
     if enable:
         app_path = get_app_path()
         winreg.SetValueEx(key, APP_NAME, 0, winreg.REG_SZ, app_path)
+        logging.info("Startup enabled!")
         print("Startup enabled!")
     else:
         try:
             winreg.DeleteValue(key, APP_NAME)
+            logging.info("Startup disabled!")
             print("Startup disabled!")
         except FileNotFoundError:
             pass

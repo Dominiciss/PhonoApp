@@ -1,4 +1,4 @@
-# create .exe: pyinstaller --onefile --icon=logo.png --add-data="logo.png;." --name=PhonoScribe --windowed main.py
+# create .exe: pyinstaller --onefile --icon=logo.png --add-data="logo.png;." --add-data="shortcuts.png;." --name=PhonoScribe --windowed main.py
 
 # Dependency imports
 import os
@@ -6,6 +6,8 @@ import os
 from PIL import Image
 from tkinter import messagebox
 from keyboard import KeyboardEvent
+from PIL import ImageTk
+import tkinter as tk
 import keyboard
 import pystray
 import threading
@@ -14,6 +16,7 @@ import webbrowser
 import pyperclip
 import time
 import psutil
+import logging
 
 # Own scripts
 import scripts.get_url as get_url
@@ -24,21 +27,29 @@ import scripts.cycle_map as cycle_map
 import scripts.transcriptor as transcriptor
 import scripts.github
 
-VERSION = 'v1.2.2'
+VERSION = 'v1.3.0'
 APP_NAME = 'PhonoScribe'
 APP_ID = 'phonoscribe.transcription.utility'
 ICON = Image.open(get_url.resource_path('logo.png'))
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
+
+logging.basicConfig(
+    filename='info.log', 
+    level=logging.INFO, 
+    format='%(asctime)s | %(levelname)s | %(message)s'
+)
 
 last_key = None
 toggle_phonemes = True
 first_check = True
 enter_listener = None
 listeners = []
+overlay = None
 
 def transcribe_popup():
     """Shortcut for transcribing and pasting the text in the user's clipboard"""
     start_time = time.perf_counter()
+    logging.info("Transcription started")
     print("Transcription started")
     clipboard = pyperclip.paste()
 
@@ -47,12 +58,15 @@ def transcribe_popup():
             transcription = transcriptor.get_ipa(clipboard)
             pyperclip.copy(transcription)
             toast.show_toast("Transcription copied to the clipboard!")
+            logging.info(f"Transcription copied. Time ellapsed: {time.perf_counter() - start_time}")
             print(f"Transcription copied. Time ellapsed: {time.perf_counter() - start_time}")
         except:
             toast.show_toast("Transcription failed. Do you have internet connection?")
+            logging.error(f"Transcription failed. Couldn't connect to the server. Time ellapsed: {time.perf_counter() - start_time}")
             print(f"Transcription failed. Couldn't connect to the server. Time ellapsed: {time.perf_counter() - start_time}")
     else:
         toast.show_toast("Clipboard did not have information")
+        logging.info(f"Transcription failed. Clipboard did not have information. Time ellapsed: {time.perf_counter() - start_time}")
         print(f"Transcription failed. Clipboard did not have information. Time ellapsed: {time.perf_counter() - start_time}")
 
 def toggle_window(event: KeyboardEvent):
@@ -90,12 +104,16 @@ def on_alt(event: KeyboardEvent):
         clear_listeners()
         enter_listener = keyboard.on_press_key(28, lambda e: call_toggle(), suppress=True)
         if toggle_phonemes:
+            if get_url.load_variables()['show_overlay'] == 1:
+                toggle_overlay()
             listeners.append(keyboard.on_press_key(59, toggle_window, suppress=True))
             listeners.append(keyboard.on_press_key(60, start_transcription, suppress=True))
             for data in cycle_map.cycle_map.values():
                 listeners.append(keyboard.on_press_key(data['scan_code'], write_symbol, suppress=True))
     elif event.event_type == keyboard.KEY_UP:
         clear_listeners()
+        if get_url.load_variables()['show_overlay'] == 1:
+            toggle_overlay()
 
 def write_symbol(event: KeyboardEvent):
     """Writes the assigned symbol for a specific letter as shown in cycle_map.py"""
@@ -106,6 +124,7 @@ def write_symbol(event: KeyboardEvent):
             letter = data
 
     start_time = time.perf_counter()
+    logging.info("Symbol writing started")
     print("Symbol writing started")
 
     try:
@@ -126,12 +145,57 @@ def write_symbol(event: KeyboardEvent):
         else:
             letter['symbol_state'] += 1
         
+        logging.info(f"Symbol was written. Time ellapsed: {time.perf_counter() - start_time}")
         print(f"Symbol was written. Time ellapsed: {time.perf_counter() - start_time}")
     except Exception as e:
+        logging.error(f"Couldn't write symbol due to {e}. Time ellapsed: {time.perf_counter() - start_time}")
         print(f"Couldn't write symbol due to {e}. Time ellapsed: {time.perf_counter() - start_time}")
 
     last_key = letter['scan_code']
     first_check = False
+
+def create_overlay():
+    """Creates the shortcuts overlay when the user presses the key alt gr"""
+    global overlay
+
+    overlay = tk.Toplevel(menu.root)
+    overlay.withdraw()
+
+    screen_width = menu.root.winfo_screenwidth()
+
+    original_image = Image.open(get_url.resource_path('shortcuts.png'))
+    img_w, img_h = original_image.size
+
+    if img_w > screen_width:
+        ratio = (screen_width / img_w) * 0.9
+            
+        new_w = int(img_w * ratio)
+        new_h = int(img_h * ratio)
+            
+        display_image = original_image.resize((new_w, new_h), Image.Resampling.LANCZOS)
+    else:
+        display_image = original_image
+        new_w, new_h = img_w, img_h
+
+    tk_image = ImageTk.PhotoImage(display_image)
+
+    image_label = tk.Label(overlay, image=tk_image)
+    image_label.pack(expand=True)
+    image_label.image = tk_image
+
+    overlay.overrideredirect(True)
+    x_position = (screen_width - new_w) // 2
+    overlay.geometry(f"{new_w}x{new_h}+{x_position}+20")
+    overlay.attributes('-topmost', True)
+    overlay.attributes('-alpha', 0.8) 
+
+def toggle_overlay():
+    global overlay
+
+    if overlay.winfo_viewable() and (not keyboard.is_pressed('alt gr') or not toggle_phonemes):
+        overlay.after(100, overlay.withdraw)
+    else:
+        overlay.after(100, overlay.deiconify)
 
 def call_toggle():
     """Changes the state of toggle_phonemes and enables/disables the phonetic keyboard"""
@@ -150,6 +214,7 @@ def call_toggle():
 def update_checker():
     """Checks for new updates in the github repository"""
     start_time = time.perf_counter()
+    logging.info("Checking for updates...")
     print("Checking for updates...")
 
     repo = scripts.github.get_repo()
@@ -158,6 +223,7 @@ def update_checker():
         github_version = scripts.github.get_latest(repo)
 
         if (VERSION != github_version):
+            logging.info(f"Version {github_version} found. Time ellapsed: {time.perf_counter() - start_time}")
             print(f"Version {github_version} found. Time ellapsed: {time.perf_counter() - start_time}")
 
             user_answer = messagebox.askyesno("Confirm Action", f"Do you want to download the version {github_version}?")
@@ -165,9 +231,11 @@ def update_checker():
             if (user_answer):
                 webbrowser.open(f"https://github.com/Dominiciss/PhonoScribe/releases/tag/{github_version}")
         else:
+            logging.info(f"Version {github_version} found was not newer than client version {VERSION}. Time ellapsed: {time.perf_counter() - start_time}")
             print(f"Version {github_version} found was not newer than client version {VERSION}. Time ellapsed: {time.perf_counter() - start_time}")
             toast.show_toast("You have the latest version available!")
     else:
+        logging.info(f"Couldn't connect with GitHub's api. Time ellapsed: {time.perf_counter() - start_time}")
         print(f"Couldn't connect with GitHub's api. Time ellapsed: {time.perf_counter() - start_time}")
         toast.show_toast("Error produced when looking for updates. Do you have internet connection?")
 
@@ -184,14 +252,15 @@ def kill_previous_instances():
     for proc in psutil.process_iter(['pid', 'name', 'exe']):
         try:
             if proc.info['exe'] == current_exe and proc.info['pid'] != current_pid:
+                logging.info(f"Found older instance (PID: {proc.info['pid']}). Terminating...")
                 print(f"Found older instance (PID: {proc.info['pid']}). Terminating...")
                 
                 proc.terminate()
-                proc.wait(timeout=3)
-                
+                proc.wait(timeout=3)  
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
         except psutil.TimeoutExpired:
+            logging.info("Process did not terminate cleanly. Forcing kill...")
             print("Process did not terminate cleanly. Forcing kill...")
             proc.kill()
 
@@ -205,21 +274,24 @@ def on_closing():
 
 if __name__ == '__main__':
     global alt_listener
+    global saved_vars
     alt_listener = None
 
     kill_previous_instances()
 
     menu.create_tk()
+    create_overlay()
     toast.popup_start()
     toast.show_toast("Welcome to PhonoScribe, your Phonetic Keyboard!\nIf you have any doubts, press Alt gr + F1 to open the main menu!", 6)
     system_tray = pystray.Icon('PhonoScribe', ICON, 'PhonoScribe')
 
+    logging.info("App started")
     print("App started")
 
     alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=True)
 
     system_tray.menu = pystray.Menu(
-        pystray.MenuItem('Info', lambda: menu.root.deiconify()),
+        pystray.MenuItem('Menu', lambda: menu.root.deiconify()),
         pystray.MenuItem('Toggle', lambda: call_toggle()),
         pystray.MenuItem('Check for updates', lambda: update_checker()),
         pystray.MenuItem('Exit', lambda: on_closing())

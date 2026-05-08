@@ -22,7 +22,7 @@ def create_tk():
     # Startup script
     startup_var = tk.BooleanVar(value=startup.check_startup_status())
 
-    def on_checkbox_click():
+    def on_startup_checkbox_click():
         is_checked = startup_var.get()
         message = "This will make PhonoScribe run automatically every time you start your computer. Do you want to proceed?" if is_checked else "This will stop PhonoScribe from running automatically at startup. Do you want to proceed?"
 
@@ -37,12 +37,39 @@ def create_tk():
         root, 
         text="Run PhonoScribe when Windows starts", 
         variable=startup_var,
-        command=on_checkbox_click,
+        command=on_startup_checkbox_click,
         bg="white", 
         activebackground="white",
         font=("Segoe UI", 10)
     )
     startup_checkbox.pack(side="top", anchor="w", padx=20, pady=(20, 0))
+
+    saved_vars = get_url.load_variables()
+
+    show_overlay_var = tk.BooleanVar(value=saved_vars['show_overlay'])
+
+    def on_show_overlay_checkbox_click():
+        is_checked = show_overlay_var.get()
+        message = "This will make an overlay of the shortcuts show everytime you press alt gr. Do you want to proceed?" if is_checked else "This will stop the overlay from appearing everytime you press alt gr. Do you want to proceed?"
+
+        user_answer = messagebox.askyesno("Confirm Action", message)
+
+        if user_answer:
+            saved_vars['show_overlay'] = 1 if is_checked else 0
+            get_url.save_variables(saved_vars)
+        else:
+            show_overlay_var.set(not startup_var.get())
+
+    show_overlay_checkbox = tk.Checkbutton(
+        root, 
+        text="Show overlay of shortcuts when alt gr is pressed", 
+        variable=show_overlay_var,
+        command=on_show_overlay_checkbox_click,
+        bg="white", 
+        activebackground="white",
+        font=("Segoe UI", 10)
+    )
+    show_overlay_checkbox.pack(side="top", anchor="w", padx=20, pady=(20, 0))
 
     author = tk.Label(root, text="Made by Manuel Dominich Martinez", bg="white", fg="black",
                          font=("Segoe UI", 8), padx=10, pady=5)
