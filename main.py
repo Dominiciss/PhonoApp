@@ -1,8 +1,6 @@
 # create .exe: pyinstaller --onefile --icon=logo.png --add-data="logo.png;." --add-data="shortcuts.png;." --name=PhonoScribe --windowed main.py
 
 # Dependency imports
-import os
-
 from PIL import Image
 from tkinter import messagebox
 from keyboard import KeyboardEvent
@@ -17,6 +15,7 @@ import pyperclip
 import time
 import psutil
 import logging
+import os
 
 # Own scripts
 import scripts.get_url as get_url
