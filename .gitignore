@@ -6,3 +6,4 @@
 *.pyc
 settings.json
 *.log
+installer.iss
