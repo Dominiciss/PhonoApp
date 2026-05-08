@@ -27,7 +27,7 @@ import scripts.cycle_map as cycle_map
 import scripts.transcriptor as transcriptor
 import scripts.github
 
-VERSION = 'v1.3.0'
+VERSION = 'v1.3.1'
 APP_NAME = 'PhonoScribe'
 APP_ID = 'phonoscribe.transcription.utility'
 ICON = Image.open(get_url.resource_path('logo.png'))
@@ -95,8 +95,13 @@ def clear_listeners():
     for data in cycle_map.cycle_map.values():
         data['symbol_state'] = 0
 
+def on_key(event: KeyboardEvent):
+    global last_key
+
+    last_key = event.scan_code
+
 def on_alt(event: KeyboardEvent):
-    global listeners, enter_listener
+    global listeners, enter_listener, overlay
     global first_check
     global toggle_phonemes
 
@@ -104,15 +109,16 @@ def on_alt(event: KeyboardEvent):
         clear_listeners()
         enter_listener = keyboard.on_press_key(28, lambda e: call_toggle(), suppress=True)
         if toggle_phonemes:
-            if get_url.load_variables()['show_overlay'] == 1:
+            if get_url.load_variables()['show_overlay'] == 1 and not overlay.winfo_viewable():
                 toggle_overlay()
+            listeners.append(keyboard.hook(on_key))
             listeners.append(keyboard.on_press_key(59, toggle_window, suppress=True))
             listeners.append(keyboard.on_press_key(60, start_transcription, suppress=True))
             for data in cycle_map.cycle_map.values():
                 listeners.append(keyboard.on_press_key(data['scan_code'], write_symbol, suppress=True))
     elif event.event_type == keyboard.KEY_UP:
         clear_listeners()
-        if get_url.load_variables()['show_overlay'] == 1:
+        if get_url.load_variables()['show_overlay'] == 1 and overlay.winfo_viewable():
             toggle_overlay()
 
 def write_symbol(event: KeyboardEvent):
@@ -132,7 +138,7 @@ def write_symbol(event: KeyboardEvent):
             if last_key != letter['scan_code']:
                 first_check = True
                 for key, data in cycle_map.cycle_map.items():
-                    if data['scan_code'] != letter['scan_code']:
+                    if data['scan_code'] != last_key:
                         data['symbol_state'] = 0
 
         if not first_check:
