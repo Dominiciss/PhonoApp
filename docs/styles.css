@@ -1251,7 +1251,7 @@ body {
     }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 800px) {
     .nav-links {
         display: none;
         position: absolute;
