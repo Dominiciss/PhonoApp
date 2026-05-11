@@ -82,9 +82,17 @@ def transcribe_popup():
         print(f"Transcription failed. Clipboard did not have information. Time ellapsed: {time.perf_counter() - start_time}")
 
 def toggle_window(event: KeyboardEvent):
+    global last_key
+
+    last_key = 59
+
     menu.root.withdraw() if menu.root.winfo_viewable() else menu.root.deiconify()
 
 def start_transcription(event: KeyboardEvent):
+    global last_key
+
+    last_key = 60
+
     menu.root.after(0, transcribe_popup)
 
 def safe_unhook(hook):
@@ -135,10 +143,10 @@ def on_alt(event: KeyboardEvent):
             listeners.append(keyboard.hook(on_key))
             listeners.append(keyboard.on_press_key(59, toggle_window, suppress=True))
             listeners.append(keyboard.on_press_key(60, start_transcription, suppress=True))
-            listeners.append(keyboard.on_press_key(72, lambda e: overlay_position(0), suppress=True))
-            listeners.append(keyboard.on_press_key(80, lambda e: overlay_position(1), suppress=True))
-            listeners.append(keyboard.on_press_key(75, lambda e: overlay_position(2), suppress=True))
-            listeners.append(keyboard.on_press_key(77, lambda e: overlay_position(3), suppress=True))
+            listeners.append(keyboard.on_press_key(72, lambda e: overlay_position(0, key=72), suppress=True))
+            listeners.append(keyboard.on_press_key(80, lambda e: overlay_position(1, key=80), suppress=True))
+            listeners.append(keyboard.on_press_key(75, lambda e: overlay_position(2, key=75), suppress=True))
+            listeners.append(keyboard.on_press_key(77, lambda e: overlay_position(3, key=77), suppress=True))
             for data in cycle_map.cycle_map.values():
                 listeners.append(keyboard.on_press_key(data['scan_code'], write_symbol, suppress=True))
         alt_time = time.perf_counter()
@@ -219,15 +227,18 @@ def write_symbol(event: KeyboardEvent):
     last_key = letter['scan_code']
     first_check = False
 
-def overlay_position(pos, first_time=False):
+def overlay_position(pos, first_time=False, key=0):
     """Changes the overlay position
     
     :param pos: new position 0 = UP, 1 = DOWN, 2 = LEFT, 3 = RIGHT
     :param first_time: used to check if the window has to be created or modified"""
-    global overlay, overlay_image
+    global overlay, overlay_image, last_key
 
     screen_width = menu.root.winfo_screenwidth()
     screen_height = menu.root.winfo_screenheight()
+
+    if key != 0:
+        last_key = key
 
     if pos == 0 or pos == 1:
         original_image = Image.open(get_url.resource_path('shortcuts-hor.png'))
