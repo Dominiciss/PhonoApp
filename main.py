@@ -86,7 +86,10 @@ def toggle_window(event: KeyboardEvent):
 
     last_key = 59
 
-    menu.root.withdraw() if menu.root.winfo_viewable() else menu.root.deiconify()
+    if menu.root.winfo_viewable():
+        menu.root.withdraw()
+    else:
+        menu.root.deiconify()
 
 def start_transcription(event: KeyboardEvent):
     global last_key

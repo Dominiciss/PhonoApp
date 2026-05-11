@@ -28,6 +28,7 @@ def create_tk():
 
     root = tk.Tk()
     root.protocol("WM_DELETE_WINDOW", root.withdraw)
+    root.attributes('-topmost', True)
     root.withdraw()
     root.configure(bg="white")
     root.title("PhonoScribe")
