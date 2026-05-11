@@ -1,4 +1,4 @@
-# create .exe: pyinstaller --onefile --icon=logo.png --add-data="logo.png;." --add-data="shortcuts.png;." --name=PhonoScribe --windowed main.py
+# create .exe: pyinstaller --onefile --icon=logo.png --add-data="logo.png;." --add-data="shortcuts-hor.png;." --add-data="shortcuts-vert.png;." --name=PhonoScribe --windowed main.py
 
 # Dependency imports
 from PIL import Image
