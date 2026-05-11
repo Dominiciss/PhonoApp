@@ -1202,8 +1202,8 @@ body {
 
 .footer-bottom a {
     color: var(--violet-light);
-    text-decoration: none;
-    font-weight: 700;
+    text-decoration: underline;
+    font-weight: 500;
 }
 
 @media (max-width: 968px) {

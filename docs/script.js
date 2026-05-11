@@ -163,7 +163,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const downloadBtn = document.getElementById('downloadBtn');
     const downloadNav = document.getElementById('downloadNav');
-    const changelogsBtn = document.getElementById('changelogsBtn');
     const otherOsBtn = document.getElementById('otherOsBtn');
     const osDropdown = document.getElementById('osDropdown');
 
@@ -194,7 +193,6 @@ document.addEventListener('DOMContentLoaded', function () {
             downloadNav.setAttribute("href", result[0]['assets'][0]['browser_download_url'])
             downloadBtn.setAttribute("href", result[0]['assets'][0]['browser_download_url'])
             downloadBtn.querySelector("span.btn-version").textContent = result[0]['tag_name']
-            changelogsBtn.setAttribute("href", result[0]['html_url'])
         } catch (error) {
             console.error(error.message);
         }
