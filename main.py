@@ -26,7 +26,7 @@ import scripts.cycle_map as cycle_map
 import scripts.transcriptor as transcriptor
 import scripts.github
 
-VERSION = 'v1.3.2'
+VERSION = 'v1.3.3'
 APP_NAME = 'PhonoScribe'
 APP_ID = 'phonoscribe.transcription.utility'
 ICON = Image.open(get_url.resource_path('logo.png'))
@@ -54,6 +54,8 @@ listeners = []
 overlay = None
 alt_pressed = 0
 persistent_overlay = False
+alt_time = 0
+overlay_image = None
 
 def transcribe_popup():
     """Shortcut for transcribing and pasting the text in the user's clipboard"""
@@ -112,7 +114,7 @@ def on_key(event: KeyboardEvent):
     last_key = event.scan_code
 
 def on_alt(event: KeyboardEvent):
-    global listeners, enter_listener, overlay, toggle_phonemes, last_key, alt_pressed, persistent_overlay
+    global listeners, enter_listener, overlay, toggle_phonemes, last_key, alt_pressed, persistent_overlay, alt_time
 
     if event.event_type == keyboard.KEY_DOWN:
         clear_listeners()
@@ -128,14 +130,17 @@ def on_alt(event: KeyboardEvent):
             listeners.append(keyboard.hook(on_key))
             listeners.append(keyboard.on_press_key(59, toggle_window, suppress=True))
             listeners.append(keyboard.on_press_key(60, start_transcription, suppress=True))
+            listeners.append(keyboard.on_press_key(72, lambda e: overlay_position(0), suppress=True))
+            listeners.append(keyboard.on_press_key(80, lambda e: overlay_position(1), suppress=True))
+            listeners.append(keyboard.on_press_key(75, lambda e: overlay_position(2), suppress=True))
+            listeners.append(keyboard.on_press_key(77, lambda e: overlay_position(3), suppress=True))
             for data in cycle_map.cycle_map.values():
                 listeners.append(keyboard.on_press_key(data['scan_code'], write_symbol, suppress=True))
-
-        alt_pressed += 1
+        alt_time = time.perf_counter()
     elif event.event_type == keyboard.KEY_UP:
         clear_listeners()
 
-        if get_url.load_variables()['show_overlay'] == 1 and alt_pressed == 1 and last_key == event.scan_code and toggle_phonemes:
+        if get_url.load_variables()['show_overlay'] == 1 and time.perf_counter() - alt_time < 0.5 and last_key == event.scan_code and toggle_phonemes:
             alt_pressed = 0
             if persistent_overlay == True:
                 toast.show_toast("Persistent mode already activated!\nIf you want to hide the overlay press 'alt gr + esc'")
@@ -155,7 +160,9 @@ def on_alt(event: KeyboardEvent):
 
 def hide_overlay(event: KeyboardEvent):
     """Hides overlay"""
-    global overlay, persistent_overlay
+    global overlay, persistent_overlay, last_key
+
+    last_key = event.scan_code
 
     persistent_overlay = False
     menu.root.after(0, overlay.withdraw)
@@ -199,43 +206,80 @@ def write_symbol(event: KeyboardEvent):
     last_key = letter['scan_code']
     first_check = False
 
+def overlay_position(pos, first_time=False):
+    global overlay, overlay_image
+
+    screen_width = menu.root.winfo_screenwidth()
+    screen_height = menu.root.winfo_screenheight()
+
+    if pos == 0 or pos == 1:
+        original_image = Image.open(get_url.resource_path('shortcuts-hor.png'))
+
+        img_w, img_h = original_image.size
+
+        if img_w > (screen_width * 0.9):
+            ratio = (screen_width / img_w) * 0.9
+            
+            new_w = int(img_w * ratio)
+            new_h = int(img_h * ratio)
+            
+            display_image = original_image.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        else:
+            display_image = original_image
+            new_w, new_h = img_w, img_h
+    elif pos == 2 or pos == 3:
+        original_image = Image.open(get_url.resource_path('shortcuts-vert.png'))
+    
+        img_w, img_h = original_image.size
+
+        if img_h > (screen_height * 0.9):
+            ratio = (screen_height / img_h) * 0.9
+            
+            new_w = int(img_w * ratio)
+            new_h = int(img_h * ratio)
+            
+            display_image = original_image.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        else:
+            display_image = original_image
+            new_w, new_h = img_w, img_h    
+
+    tk_image = ImageTk.PhotoImage(display_image)
+
+    if overlay_image is None:
+        overlay_image = tk.Label(overlay, image=tk_image)
+        overlay_image.pack(expand=True)
+    else:
+        overlay_image.config(image=tk_image)
+    overlay_image.image = tk_image
+
+    overlay.overrideredirect(True)
+    x_position = (screen_width - new_w) // 2
+    y_position = (screen_height - new_h) // 2
+
+    if pos == 0:
+        overlay.geometry(f"{new_w}x{new_h}+{x_position}+10")
+    elif pos == 1:
+        overlay.geometry(f"{new_w}x{new_h}+{x_position}+{screen_height - new_h - 10}")
+    elif pos == 2:
+        overlay.geometry(f"{new_w}x{new_h}+10+{y_position}")
+    elif pos == 3:
+        overlay.geometry(f"{new_w}x{new_h}+{screen_width - new_w - 10}+{y_position}")
+
 def create_overlay():
     """Creates the shortcuts overlay when the user presses the key alt gr"""
     global overlay
 
     overlay = tk.Toplevel(menu.root)
     overlay.withdraw()
-
-    screen_width = menu.root.winfo_screenwidth()
-
-    original_image = Image.open(get_url.resource_path('shortcuts.png'))
-    img_w, img_h = original_image.size
-
-    if img_w > screen_width:
-        ratio = (screen_width / img_w) * 0.9
-            
-        new_w = int(img_w * ratio)
-        new_h = int(img_h * ratio)
-            
-        display_image = original_image.resize((new_w, new_h), Image.Resampling.LANCZOS)
-    else:
-        display_image = original_image
-        new_w, new_h = img_w, img_h
-
-    tk_image = ImageTk.PhotoImage(display_image)
-
-    image_label = tk.Label(overlay, image=tk_image)
-    image_label.pack(expand=True)
-    image_label.image = tk_image
-
-    overlay.overrideredirect(True)
-    x_position = (screen_width - new_w) // 2
-    overlay.geometry(f"{new_w}x{new_h}+{x_position}+20")
+    
     overlay.attributes('-topmost', True)
     overlay.attributes('-alpha', 0.8) 
 
 def toggle_overlay():
     global overlay
+
+    saved_pos = get_url.load_variables()['overlay_position']
+    overlay_position(saved_pos, first_time=True)
 
     if overlay.winfo_viewable() and (not keyboard.is_pressed('alt gr') or not toggle_phonemes):
         overlay.after(0, overlay.withdraw)

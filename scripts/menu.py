@@ -5,6 +5,20 @@ from tkinter import ttk
 import scripts.startup as startup
 import scripts.get_url as get_url
 
+def on_select(pos, saved_vars):
+    if pos == "Up":
+        saved_vars['overlay_position'] = 0
+        get_url.save_variables(saved_vars)
+    elif pos == "Down":
+        saved_vars['overlay_position'] = 1
+        get_url.save_variables(saved_vars)
+    elif pos == "Left":
+        saved_vars['overlay_position'] = 2
+        get_url.save_variables(saved_vars)
+    elif pos == "Right":
+        saved_vars['overlay_position'] = 3
+        get_url.save_variables(saved_vars)
+
 def create_tk():
     """Creates the main GUI where you can find basic information about shortcuts, author and startup"""
     global root
@@ -57,7 +71,7 @@ def create_tk():
             saved_vars['show_overlay'] = 1 if is_checked else 0
             get_url.save_variables(saved_vars)
         else:
-            show_overlay_var.set(not startup_var.get())
+            show_overlay_var.set(not show_overlay_var.get())
 
     show_overlay_checkbox = tk.Checkbutton(
         root, 
@@ -69,6 +83,24 @@ def create_tk():
         font=("Segoe UI", 10)
     )
     show_overlay_checkbox.pack(side="top", anchor="w", padx=20, pady=(20, 0))
+
+    selector_var = saved_vars['overlay_position']
+
+    options = ["Up", "Down", "Left", "Right"]
+    selected_option = tk.StringVar(value=options[selector_var])
+
+    row_frame = tk.Frame(root, bg="white")
+    row_frame.pack(padx= 20, pady=(20, 0), anchor="w")
+
+    selector_text = tk.Label(row_frame, text="Select the position of the overlay", bg="white")
+    selector_text.pack(side=tk.LEFT, padx=(0, 5))
+
+    dropdown = ttk.Combobox(row_frame, textvariable=selected_option, values=options, state="readonly", width="8")
+    dropdown.current(selector_var)
+    dropdown.pack(side=tk.LEFT, padx=5)
+
+    confirm_btn = tk.Button(row_frame, text="✓", command=lambda: on_select(selected_option.get(), saved_vars))
+    confirm_btn.pack(side=tk.LEFT, padx=(5, 0))
 
     author = tk.Label(root, text="Made by Manuel Dominich Martinez", bg="white", fg="black",
                          font=("Segoe UI", 8), padx=10, pady=5)
