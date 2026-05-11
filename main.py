@@ -52,6 +52,8 @@ first_check = True
 enter_listener = None
 listeners = []
 overlay = None
+alt_pressed = 0
+persistent_overlay = False
 
 def transcribe_popup():
     """Shortcut for transcribing and pasting the text in the user's clipboard"""
@@ -110,23 +112,53 @@ def on_key(event: KeyboardEvent):
     last_key = event.scan_code
 
 def on_alt(event: KeyboardEvent):
-    global listeners, enter_listener, overlay, toggle_phonemes
+    global listeners, enter_listener, overlay, toggle_phonemes, last_key, alt_pressed, persistent_overlay
 
     if event.event_type == keyboard.KEY_DOWN:
         clear_listeners()
+
+        last_key = event.scan_code
+
         enter_listener = keyboard.on_press_key(28, lambda e: call_toggle(), suppress=True)
         if toggle_phonemes:
             if get_url.load_variables()['show_overlay'] == 1 and not overlay.winfo_viewable():
                 toggle_overlay()
+            if get_url.load_variables()['show_overlay'] == 1 and persistent_overlay == True:
+                listeners.append(keyboard.on_press_key(1, hide_overlay, suppress=True))
             listeners.append(keyboard.hook(on_key))
             listeners.append(keyboard.on_press_key(59, toggle_window, suppress=True))
             listeners.append(keyboard.on_press_key(60, start_transcription, suppress=True))
             for data in cycle_map.cycle_map.values():
                 listeners.append(keyboard.on_press_key(data['scan_code'], write_symbol, suppress=True))
+
+        alt_pressed += 1
     elif event.event_type == keyboard.KEY_UP:
         clear_listeners()
+
+        if get_url.load_variables()['show_overlay'] == 1 and alt_pressed == 1 and last_key == event.scan_code and toggle_phonemes:
+            alt_pressed = 0
+            if persistent_overlay == True:
+                toast.show_toast("Persistent mode already activated!\nIf you want to hide the overlay press 'alt gr + esc'")
+            else:
+                toast.show_toast("Persistent mode activated!\nIf you want to hide the overlay press 'alt gr + esc'")
+            persistent_overlay = True
+            return
+
+        if get_url.load_variables()['show_overlay'] == 1 and persistent_overlay == True:
+            alt_pressed = 0
+            return
+
         if get_url.load_variables()['show_overlay'] == 1 and overlay.winfo_viewable():
             toggle_overlay()
+
+        alt_pressed = 0
+
+def hide_overlay(event: KeyboardEvent):
+    """Hides overlay"""
+    global overlay, persistent_overlay
+
+    persistent_overlay = False
+    menu.root.after(0, overlay.withdraw)
 
 def write_symbol(event: KeyboardEvent):
     """Writes the assigned symbol for a specific letter as shown in cycle_map.py"""
@@ -206,15 +238,16 @@ def toggle_overlay():
     global overlay
 
     if overlay.winfo_viewable() and (not keyboard.is_pressed('alt gr') or not toggle_phonemes):
-        overlay.after(100, overlay.withdraw)
+        overlay.after(0, overlay.withdraw)
     else:
-        overlay.after(100, overlay.deiconify)
+        overlay.after(0, overlay.deiconify)
 
 def call_toggle():
     """Changes the state of toggle_phonemes and enables/disables the phonetic keyboard"""
-    global ICON, toggle_phonemes, system_tray, alt_listener
+    global ICON, toggle_phonemes, system_tray, alt_listener, persistent_overlay
 
     if toggle_phonemes:
+        hide_overlay()
         keyboard.unhook(alt_listener)
         alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=False)
         clear_listeners()
