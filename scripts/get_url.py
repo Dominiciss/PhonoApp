@@ -19,10 +19,8 @@ def get_base_dir():
     This prevents saving data in PyInstaller's temporary MEIPASS folder.
     """
     if getattr(sys, 'frozen', False):
-        # We are running as a PyInstaller compiled executable
         return os.path.dirname(sys.executable)
     else:
-        # We are running as a normal Python script
         return os.path.dirname(os.path.abspath("main.py"))
 
 def load_variables():
@@ -33,7 +31,6 @@ def load_variables():
         with open(settings_file, 'r') as file:
             return json.load(file)
     else:
-        # Default variables if the file hasn't been created yet
         return {
             "show_overlay": 1,
             "overlay_position": 0,

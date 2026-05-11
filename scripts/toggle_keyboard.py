@@ -3,6 +3,9 @@ from PIL import Image, ImageOps
 import scripts.toast as toast
 
 def get_disabled_icon(icon):
+    """Puts a grey filter on the icon
+    
+    :param icon: app icon"""
     img = icon.convert("RGBA")
     
     r, g, b, a = img.split()

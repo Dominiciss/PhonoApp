@@ -15,6 +15,7 @@ popup = None
 label = None
 
 def popup_start():
+    """Starts the handler for popups that is withdrawn upon initiation"""
     global popup
     global label
 
@@ -44,7 +45,6 @@ def popup_start():
                          font=("Segoe UI", 10), padx=10, pady=5, anchor="w", justify="left")
     label.pack()
 
-# Display a small, non-intrusive popup message.
 def show_toast(message, duration=3):
     """Shows toast notifications for app information
     
@@ -59,7 +59,6 @@ def show_toast(message, duration=3):
 
         label.config(text=message)
 
-        # Position bottom-right corner of the screen
         popup.update_idletasks()
         screen_width = popup.winfo_screenwidth()
         screen_height = popup.winfo_screenheight()
@@ -78,5 +77,4 @@ def show_toast(message, duration=3):
         if (label_id == old_label_id):
             popup.withdraw()
 
-    # Run popup in a separate thread so it doesn't block the main process
     threading.Thread(target=_popup, daemon=True).start()

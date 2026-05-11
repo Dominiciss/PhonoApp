@@ -6,6 +6,7 @@ import logging
 APP_NAME = "PhonoScribe"
 
 def get_app_path():
+    """Gets the app .exe specific path"""
     script_path = os.path.abspath(sys.argv[0])
     
     if script_path.endswith('.py') or script_path.endswith('.pyw'):

@@ -8,9 +8,10 @@ import scripts.get_url as get_url
 def create_tk():
     """Creates the main GUI where you can find basic information about shortcuts, author and startup"""
     global root
+
     root = tk.Tk()
-    root.protocol("WM_DELETE_WINDOW", root.withdraw)  # Hide window instead of closing
-    root.withdraw()  # Hide the main window
+    root.protocol("WM_DELETE_WINDOW", root.withdraw)
+    root.withdraw()
     root.configure(bg="white")
     root.title("PhonoScribe")
     root.geometry("350x600")
@@ -18,7 +19,6 @@ def create_tk():
     app_icon = tk.PhotoImage(file=get_url.resource_path('logo.png'))
     root.iconphoto(True, app_icon)
 
-    # Startup script
     startup_var = tk.BooleanVar(value=startup.check_startup_status())
 
     def on_startup_checkbox_click():
@@ -89,7 +89,7 @@ def create_tk():
     )
     style.configure("Treeview.Heading", font=("Segoe UI", 15, "bold"))
 
-    style.map("Treeview", background=[("selected", "#612b6e")]) # Purple highlight when clicked
+    style.map("Treeview", background=[("selected", "#612b6e")])
 
     table_frame = tk.Frame(root, bg="white")
     table_frame.pack(pady=20, padx=20, fill="both", expand=True)
@@ -110,11 +110,9 @@ def create_tk():
     my_table.heading("shortcut", text="Keys")
     my_table.heading("symbols", text="Symbols")
 
-    # Define a tag for alternating row colors
     my_table.tag_configure('oddrow', background="#f0f0f0")
     my_table.tag_configure('evenrow', background="white")
 
-    # --- 6. Insert the Data ---
     shortcut_data = [
     ("Alt gr + A", "ɑ æ ʌ ɐ"),
     ("Alt gr + B", "β ɓ ʙ"),
@@ -157,7 +155,6 @@ def create_tk():
     ("Alt gr + -", "→")
     ]
 
-    # Loop through the data and insert it row by row
     for index, (key, symbols) in enumerate(shortcut_data):
         if index % 2 == 0:
             my_table.insert(parent="", index="end", iid=index, values=(key, symbols), tags=('evenrow',))

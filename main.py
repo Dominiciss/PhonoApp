@@ -55,6 +55,7 @@ overlay = None
 
 def transcribe_popup():
     """Shortcut for transcribing and pasting the text in the user's clipboard"""
+    
     start_time = time.perf_counter()
     logging.info("Transcription started")
     print("Transcription started")
@@ -92,6 +93,7 @@ def safe_unhook(hook):
 def clear_listeners():
     """Force-clears all active listeners and resets state"""
     global listeners, enter_listener, first_check
+
     if enter_listener is not None:
         safe_unhook(enter_listener)
         enter_listener = None
@@ -108,9 +110,7 @@ def on_key(event: KeyboardEvent):
     last_key = event.scan_code
 
 def on_alt(event: KeyboardEvent):
-    global listeners, enter_listener, overlay
-    global first_check
-    global toggle_phonemes
+    global listeners, enter_listener, overlay, toggle_phonemes
 
     if event.event_type == keyboard.KEY_DOWN:
         clear_listeners()
@@ -212,7 +212,7 @@ def toggle_overlay():
 
 def call_toggle():
     """Changes the state of toggle_phonemes and enables/disables the phonetic keyboard"""
-    global ICON, toggle_phonemes, system_tray, alt_listener, first_check, listeners
+    global ICON, toggle_phonemes, system_tray, alt_listener
 
     if toggle_phonemes:
         keyboard.unhook(alt_listener)
@@ -287,7 +287,6 @@ def on_closing():
 
 if __name__ == '__main__':
     global alt_listener
-    global saved_vars
     alt_listener = None
 
     kill_previous_instances()

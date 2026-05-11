@@ -15,10 +15,10 @@ def get_ipa(text, dialect='br'):
     data = {
         "text_to_transcribe": text,
         "submit": "Show transcription",
-        "dialect": dialect,           # 'am' = American, 'br' = British
+        "dialect": dialect,
         "output_mode": "ipa",
-        "weak_forms": "off",           # Optional: enables weak forms
-        "pre_positions": "off",         # Optional: enables parentheses
+        "weak_forms": "off",
+        "pre_positions": "off",
         "lines": "one"
     }
 
