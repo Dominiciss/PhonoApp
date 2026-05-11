@@ -1,4 +1,7 @@
 import tkinter as tk
+import webbrowser
+import logging
+from PIL import Image, ImageTk
 from tkinter import messagebox
 from tkinter import ttk
 
@@ -28,7 +31,7 @@ def create_tk():
     root.withdraw()
     root.configure(bg="white")
     root.title("PhonoScribe")
-    root.geometry("350x600")
+    root.geometry("400x600")
 
     app_icon = tk.PhotoImage(file=get_url.resource_path('logo.png'))
     root.iconphoto(True, app_icon)
@@ -98,13 +101,42 @@ def create_tk():
     dropdown = ttk.Combobox(row_frame, textvariable=selected_option, values=options, state="readonly", width="8")
     dropdown.current(selector_var)
     dropdown.pack(side=tk.LEFT, padx=5)
+    dropdown.bind("<<ComboboxSelected>>", lambda _: on_select(selected_option.get(), saved_vars))
 
-    confirm_btn = tk.Button(row_frame, text="✓", command=lambda: on_select(selected_option.get(), saved_vars))
-    confirm_btn.pack(side=tk.LEFT, padx=(5, 0))
+    row_author = tk.Frame(root, bg="white")
+    row_author.pack(padx= 20, pady=10, anchor="center", side="bottom")
 
-    author = tk.Label(root, text="Made by Manuel Dominich Martinez", bg="white", fg="black",
-                         font=("Segoe UI", 8), padx=10, pady=5)
-    author.pack(side="bottom")
+    author = tk.Label(row_author, text="Made by Manuel Dominich Martinez", bg="white", fg="black",
+                         font=("Segoe UI", 8))
+    author.pack(side=tk.LEFT, padx=(0, 5))
+
+    def open_url(url):
+        """Open the specified URL in the default web browser."""
+        try:
+            webbrowser.open(url, new=2)
+        except Exception as e:
+            logging.error(f"Error opening URL: {e}")
+            print(f"Error opening URL: {e}")
+
+    old_github_logo = Image.open(get_url.resource_path('github.png'))
+
+    resized_github = old_github_logo.resize((20, 20))
+    
+    github_logo = ImageTk.PhotoImage(resized_github)
+
+    github_btn = tk.Button(row_author, command=lambda: open_url("https://github.com/Dominiciss"), image=github_logo)
+    github_btn.image = github_logo
+    github_btn.pack(side=tk.LEFT, padx=(5, 0))
+
+    old_linkedin_logo = Image.open(get_url.resource_path('linkedin.png'))
+
+    resized_linkedin = old_linkedin_logo.resize((20, 20))
+
+    linkedin_logo = ImageTk.PhotoImage(resized_linkedin)
+
+    linkedin_btn = tk.Button(row_author, command=lambda: open_url("https://www.linkedin.com/in/manuel-dominich-martinez/"), image=linkedin_logo)
+    linkedin_btn.image = linkedin_logo
+    linkedin_btn.pack(side=tk.LEFT, padx=(5, 0))
 
     divider = tk.Frame(root, height=1, bg="#612b6e")
     divider.pack(side="bottom", fill="x", padx=40)
@@ -184,7 +216,8 @@ def create_tk():
     ("Alt gr + 8", " ˊ  ˋ  ˏ  ˎ "),
     ("Alt gr + 9", " ˇ  ˆ "),
     ("Alt gr + 0", "ø"),
-    ("Alt gr + -", "→")
+    ("Alt gr + -", "→"),
+    ("Alt gr + arrow", "move overlay")
     ]
 
     for index, (key, symbols) in enumerate(shortcut_data):

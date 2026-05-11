@@ -1,4 +1,4 @@
-# create .exe: pyinstaller --onefile --icon=logo.png --add-data="logo.png;." --add-data="shortcuts-hor.png;." --add-data="shortcuts-vert.png;." --name=PhonoScribe --windowed main.py
+# create .exe: pyinstaller --onefile --icon=logo.png --add-data="logo.png;." --add-data="shortcuts-hor.png;." --add-data="shortcuts-vert.png;." --add-data="github.png;." --add-data="linkedin.png;." --name=PhonoScribe --windowed main.py
 
 # Dependency imports
 from PIL import Image
@@ -117,6 +117,11 @@ def on_alt(event: KeyboardEvent):
     global listeners, enter_listener, overlay, toggle_phonemes, last_key, alt_pressed, persistent_overlay, alt_time
 
     if event.event_type == keyboard.KEY_DOWN:
+        if alt_pressed == 1:
+            return
+
+        alt_pressed = 1
+
         clear_listeners()
 
         last_key = event.scan_code
@@ -139,8 +144,9 @@ def on_alt(event: KeyboardEvent):
         alt_time = time.perf_counter()
     elif event.event_type == keyboard.KEY_UP:
         clear_listeners()
+        duration = round(time.perf_counter() - alt_time, 2)
 
-        if get_url.load_variables()['show_overlay'] == 1 and time.perf_counter() - alt_time < 0.5 and last_key == event.scan_code and toggle_phonemes:
+        if get_url.load_variables()['show_overlay'] == 1 and duration < 0.5 and last_key == event.scan_code and toggle_phonemes:
             alt_pressed = 0
             if persistent_overlay == True:
                 toast.show_toast("Persistent mode already activated!\nIf you want to hide the overlay press 'alt gr + esc'")
@@ -159,10 +165,17 @@ def on_alt(event: KeyboardEvent):
         alt_pressed = 0
 
 def hide_overlay(event: KeyboardEvent):
-    """Hides overlay"""
+    """Hides overlay when esc is pressed"""
     global overlay, persistent_overlay, last_key
 
     last_key = event.scan_code
+
+    persistent_overlay = False
+    menu.root.after(0, overlay.withdraw)
+
+def _hide_overlay():
+    """Hides overlay when enter is pressed"""
+    global overlay, persistent_overlay
 
     persistent_overlay = False
     menu.root.after(0, overlay.withdraw)
@@ -207,6 +220,10 @@ def write_symbol(event: KeyboardEvent):
     first_check = False
 
 def overlay_position(pos, first_time=False):
+    """Changes the overlay position
+    
+    :param pos: new position 0 = UP, 1 = DOWN, 2 = LEFT, 3 = RIGHT
+    :param first_time: used to check if the window has to be created or modified"""
     global overlay, overlay_image
 
     screen_width = menu.root.winfo_screenwidth()
@@ -276,22 +293,26 @@ def create_overlay():
     overlay.attributes('-alpha', 0.8) 
 
 def toggle_overlay():
+    """Disables or enables the overlay"""
     global overlay
 
     saved_pos = get_url.load_variables()['overlay_position']
-    overlay_position(saved_pos, first_time=True)
 
     if overlay.winfo_viewable() and (not keyboard.is_pressed('alt gr') or not toggle_phonemes):
         overlay.after(0, overlay.withdraw)
-    else:
+        overlay_position(saved_pos, first_time=True)
+    else: 
+        overlay_position(saved_pos, first_time=True)
         overlay.after(0, overlay.deiconify)
 
 def call_toggle():
     """Changes the state of toggle_phonemes and enables/disables the phonetic keyboard"""
-    global ICON, toggle_phonemes, system_tray, alt_listener, persistent_overlay
+    global ICON, toggle_phonemes, system_tray, alt_listener, persistent_overlay, last_key
+
+    last_key = 28
 
     if toggle_phonemes:
-        hide_overlay()
+        _hide_overlay()
         keyboard.unhook(alt_listener)
         alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=False)
         clear_listeners()
