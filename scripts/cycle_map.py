@@ -18,7 +18,7 @@ cycle_map = {
         'letter': 'c',
         'scan_code': 46,
         'symbol_state': 0,
-        'symbols': ['ç', 'ɕ']
+        'symbols': ['ɔ', 'ç', 'ɕ']
         },
     'd': {
         'letter': 'd',
@@ -84,13 +84,13 @@ cycle_map = {
         'letter': 'n',
         'scan_code': 49,
         'symbol_state': 0,
-        'symbols': ['ñ', 'ŋ', 'ɲ', 'ɳ', 'ɴ']
+        'symbols': ['ŋ', 'ñ', 'ɲ', 'ɳ', 'ɴ']
         },
     'o': {
         'letter': 'o',
         'scan_code': 24,
         'symbol_state': 0,
-        'symbols': ['ɔ', 'ɒ', 'œ', 'ɶ']
+        'symbols': ['ɒ', 'ɔ', 'œ', 'ɶ']
         },
     'p': {
         'letter': 'p',
@@ -144,7 +144,7 @@ cycle_map = {
         'letter': 'x',
         'scan_code': 45,
         'symbol_state': 0,
-        'symbols': ['χ']
+        'symbols': ['æ', 'χ']
         },
     'y': {
         'letter': 'y',
@@ -236,6 +236,6 @@ cycle_map = {
         'letter': '0',
         'scan_code': 11,
         'symbol_state': 0,
-        'symbols': ['ø']
+        'symbols': ['˭', 'ø']
         }
 }
