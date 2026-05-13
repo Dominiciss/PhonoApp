@@ -26,7 +26,7 @@ import scripts.cycle_map as cycle_map
 import scripts.transcriptor as transcriptor
 import scripts.github
 
-VERSION = 'v1.3.3'
+VERSION = 'v1.3.4'
 APP_NAME = 'PhonoScribe'
 APP_ID = 'phonoscribe.transcription.utility'
 ICON = Image.open(get_url.resource_path('logo.png'))
@@ -319,6 +319,13 @@ def toggle_overlay():
         overlay_position(saved_pos, first_time=True)
         overlay.after(0, overlay.deiconify)
 
+def supress_alt(event: KeyboardEvent):
+    global alt_listener, alt_pressed
+
+    keyboard.unhook(alt_listener)
+    alt_pressed = 0
+    alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=True)
+
 def call_toggle():
     """Changes the state of toggle_phonemes and enables/disables the phonetic keyboard"""
     global ICON, toggle_phonemes, system_tray, alt_listener, persistent_overlay, last_key
@@ -332,7 +339,10 @@ def call_toggle():
         clear_listeners()
     else:
         keyboard.unhook(alt_listener)
-        alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=True)
+        if keyboard.is_pressed("alt gr"):
+            alt_listener = keyboard.on_release_key("alt gr", supress_alt, suppress=False)
+        else:
+            alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=True)
 
     toggle_phonemes = toggle_keyboard.toggle_phonetic_keyboard(toggle_phonemes, ICON, system_tray)
 
