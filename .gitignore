@@ -8,3 +8,5 @@ settings.json
 *.log
 /Output/
 installer.iss
+certificate.pfx
+certificate.txt
