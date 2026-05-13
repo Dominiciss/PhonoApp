@@ -188,7 +188,7 @@ cycle_map = {
         'letter': '2',
         'scan_code': 3,
         'symbol_state': 0,
-        'symbols': ['<', '>']
+        'symbols': ['<', '>', '[', ']']
         },
     '3': {
         'letter': '3',

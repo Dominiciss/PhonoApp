@@ -179,6 +179,10 @@ def create_tk():
     my_table.tag_configure('evenrow', background="white")
 
     shortcut_data = [
+    ("Alt gr + F1", "open menu"),
+    ("Alt gr + F2", "transcribe"),
+    ("Alt gr + Enter", "toggle shortcuts"),
+    ("Alt gr + Arrow", "move overlay"),
     ("Alt gr + A", "ɑ æ ʌ ɐ"),
     ("Alt gr + B", "β ɓ ʙ"),
     ("Alt gr + C", "ç ɕ"),
@@ -187,7 +191,7 @@ def create_tk():
     ("Alt gr + F", "‿  ͡   ͜  "),
     ("Alt gr + G", "ɣ ɠ ɢ ʛ ɡ"),
     ("Alt gr + H", "ʰ ʱ ħ ɦ ɥ ɧ ʜ"),
-    ("Alt gr + I", "ɪ ɨ ɪ̈"),
+    ("Alt gr + I", "ɪ ɨ"),
     ("Alt gr + J", "ʲ ʝ ɟ ʄ"),
     ("Alt gr + K", "ǀ ǁ ǂ ǃ ʘ"),
     ("Alt gr + L", "ɫ ɭ ɬ ʟ ɮ"),
@@ -208,7 +212,7 @@ def create_tk():
     ("Alt gr + ,", " ́   ̀  "),
     ("Alt gr + .", "ː"),
     ("Alt gr + 1", "| ‖"),
-    ("Alt gr + 2", "< >"),
+    ("Alt gr + 2", "< > [ ]"),
     ("Alt gr + 3", " ̥  ̊ "),
     ("Alt gr + 4", " ̪  "),
     ("Alt gr + 5", " ̩ "),
@@ -218,7 +222,6 @@ def create_tk():
     ("Alt gr + 9", " ˇ  ˆ "),
     ("Alt gr + 0", "ø"),
     ("Alt gr + -", "→"),
-    ("Alt gr + arrow", "move overlay")
     ]
 
     for index, (key, symbols) in enumerate(shortcut_data):
