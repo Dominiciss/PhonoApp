@@ -107,7 +107,7 @@ def safe_unhook(hook):
 
 def clear_listeners():
     """Force-clears all active listeners and resets state"""
-    global listeners, enter_listener, first_check
+    global listeners, first_check
 
     for item in listeners:
         safe_unhook(item)
@@ -157,9 +157,7 @@ def on_alt(event: KeyboardEvent):
             keyboard.send('ctrl')
             keyboard.send('alt')
 
-        if enter_listener is not None:
-            safe_unhook(enter_listener)
-            enter_listener = None
+        safe_unhook(enter_listener)
 
         clear_listeners()
         duration = round(time.perf_counter() - alt_time, 2)
@@ -327,10 +325,11 @@ def toggle_overlay():
         overlay.after(0, overlay.deiconify)
 
 def supress_alt(event: KeyboardEvent):
-    global alt_listener, alt_pressed, alt_released
+    global alt_listener, alt_pressed, alt_released, enter_listener
 
     clear_listeners()
     safe_unhook(alt_listener)
+    safe_unhook(enter_listener)
     alt_pressed = 0
     alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=True)
 
