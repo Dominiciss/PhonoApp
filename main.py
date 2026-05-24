@@ -26,7 +26,7 @@ import scripts.cycle_map as cycle_map
 import scripts.transcriptor as transcriptor
 import scripts.github
 
-VERSION = 'v1.3.6'
+VERSION = 'v1.3.7'
 APP_NAME = 'PhonoScribe'
 APP_ID = 'phonoscribe.transcription.utility'
 ICON = Image.open(get_url.resource_path('logo.png'))
@@ -109,9 +109,6 @@ def clear_listeners():
     """Force-clears all active listeners and resets state"""
     global listeners, enter_listener, first_check
 
-    if enter_listener is not None:
-        safe_unhook(enter_listener)
-        enter_listener = None
     for item in listeners:
         safe_unhook(item)
     listeners = []
@@ -156,8 +153,13 @@ def on_alt(event: KeyboardEvent):
                 listeners.append(keyboard.on_press_key(data['scan_code'], write_symbol, suppress=True))
         alt_time = time.perf_counter()
     elif event.event_type == keyboard.KEY_UP:
-        keyboard.send('ctrl')
-        keyboard.send('alt')
+        if toggle_phonemes:
+            keyboard.send('ctrl')
+            keyboard.send('alt')
+
+        if enter_listener is not None:
+            safe_unhook(enter_listener)
+            enter_listener = None
 
         clear_listeners()
         duration = round(time.perf_counter() - alt_time, 2)
@@ -325,28 +327,45 @@ def toggle_overlay():
         overlay.after(0, overlay.deiconify)
 
 def supress_alt(event: KeyboardEvent):
-    global alt_listener, alt_pressed
+    global alt_listener, alt_pressed, alt_released
 
-    keyboard.unhook(alt_listener)
+    clear_listeners()
+    safe_unhook(alt_listener)
     alt_pressed = 0
     alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=True)
 
 def call_toggle():
     """Changes the state of toggle_phonemes and enables/disables the phonetic keyboard"""
-    global ICON, toggle_phonemes, system_tray, alt_listener, persistent_overlay, last_key
+    global ICON, toggle_phonemes, system_tray, alt_listener, alt_released, persistent_overlay, last_key
 
     last_key = 28
 
     if toggle_phonemes:
         _hide_overlay()
-        keyboard.unhook(alt_listener)
+        safe_unhook(alt_listener)
         alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=False)
         clear_listeners()
     else:
-        keyboard.unhook(alt_listener)
         if keyboard.is_pressed("alt gr"):
-            alt_listener = keyboard.on_release_key("alt gr", supress_alt, suppress=False)
-        else:
+            if get_url.load_variables()['show_overlay'] == 1 and not overlay.winfo_viewable():
+                toggle_overlay()
+            if get_url.load_variables()['show_overlay'] == 1 and persistent_overlay == True:
+                listeners.append(keyboard.on_press_key(1, hide_overlay, suppress=True))
+            listeners.append(keyboard.hook(on_key))
+            listeners.append(keyboard.on_press_key(29, lambda _: None, suppress=True))
+            listeners.append(keyboard.on_press_key(56, lambda _: None, suppress=True))
+            listeners.append(keyboard.on_press_key(59, toggle_window, suppress=True))
+            listeners.append(keyboard.on_press_key(60, start_transcription, suppress=True))
+            listeners.append(keyboard.on_press_key(72, lambda e: overlay_position(0, key=72), suppress=True))
+            listeners.append(keyboard.on_press_key(80, lambda e: overlay_position(1, key=80), suppress=True))
+            listeners.append(keyboard.on_press_key(75, lambda e: overlay_position(2, key=75), suppress=True))
+            listeners.append(keyboard.on_press_key(77, lambda e: overlay_position(3, key=77), suppress=True))
+            for data in cycle_map.cycle_map.values():
+                listeners.append(keyboard.on_press_key(data['scan_code'], write_symbol, suppress=True))
+
+            alt_listener = keyboard.on_release_key("alt gr", supress_alt, suppress=True)
+        else:  
+            safe_unhook(alt_listener)
             alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=True)
 
     toggle_phonemes = toggle_keyboard.toggle_phonetic_keyboard(toggle_phonemes, ICON, system_tray)
@@ -454,7 +473,9 @@ def on_closing():
 
 if __name__ == '__main__':
     global alt_listener
+    global alt_released
     alt_listener = None
+    alt_released = None
 
     kill_previous_instances()
 
