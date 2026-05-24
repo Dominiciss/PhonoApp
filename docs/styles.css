@@ -709,6 +709,7 @@ body {
     backdrop-filter: blur(0px);
     user-select: none;
     overflow-y: auto;
+    transition: opacity 0.3s ease-in;
 }
 
 .hero-visual .changelog-info .changelog-before {
@@ -793,6 +794,7 @@ body {
     position: relative;
     backdrop-filter: blur(0px);
     user-select: none;
+    transition: opacity 0.3s ease-in;
 }
 
 .keyboard-preview.hidden {
