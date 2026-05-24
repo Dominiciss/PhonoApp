@@ -165,6 +165,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const downloadNav = document.getElementById('downloadNav');
     const otherOsBtn = document.getElementById('otherOsBtn');
     const osDropdown = document.getElementById('osDropdown');
+    const changelogInfo = document.getElementById('changelog-info');
+    const changelogBtn = document.getElementById('btn-changelog');
 
     function getOS() {
         const userAgent = window.navigator.userAgent;
@@ -188,15 +190,52 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const result = await response.json();
 
-            console.log(result[0])
+            downloadNav.setAttribute("href", result[0]['assets'][0]['browser_download_url']);
+            downloadBtn.setAttribute("href", result[0]['assets'][0]['browser_download_url']);
+            downloadBtn.querySelector("span.btn-version").textContent = result[0]['tag_name'];
 
-            downloadNav.setAttribute("href", result[0]['assets'][0]['browser_download_url'])
-            downloadBtn.setAttribute("href", result[0]['assets'][0]['browser_download_url'])
-            downloadBtn.querySelector("span.btn-version").textContent = result[0]['tag_name']
+            changelog = result.map((e) => { return { 'version': e['tag_name'], 'content': e['body'] } });
+            changelog.forEach((e) => {
+                let div = document.createElement("div");
+                changelogInfo.appendChild(div);
+
+                let h6 = document.createElement("h6");
+                let p = document.createElement("p");
+                h6.innerText = e['version'];
+                p.innerText = e['content'];
+
+                div.appendChild(h6)
+                div.appendChild(p)
+            });
+
+            let totalHeight = 0;
+
+            Array.from(changelogInfo.children).forEach(child => {
+                const childBottom = child.offsetTop + child.offsetHeight;
+                if (childBottom > totalHeight) {
+                    totalHeight = childBottom;
+                }
+            });
+
+            changelogInfo.querySelector('.changelog-before').style.height = totalHeight + "px";
         } catch (error) {
             console.error(error.message);
         }
     }
+
+    changelogBtn.addEventListener("click", (e) => {
+        kbPreview = changelogInfo.parentElement.querySelector(".keyboard-preview")
+
+        if (changelogInfo.classList.contains("hidden")) {
+            kbPreview.classList.add("hidden")
+            changelogInfo.classList.remove("hidden")
+            changelogBtn.textContent = "Go back"
+        } else {
+            changelogInfo.classList.add("hidden")
+            kbPreview.classList.remove("hidden")
+            changelogBtn.textContent = "Changelogs"
+        }
+    })
 
     if (downloadBtn) {
         get_latest_release();
