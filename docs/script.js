@@ -163,21 +163,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const downloadBtn = document.getElementById('downloadBtn');
     const downloadNav = document.getElementById('downloadNav');
-    const otherOsBtn = document.getElementById('otherOsBtn');
-    const osDropdown = document.getElementById('osDropdown');
     const changelogInfo = document.getElementById('changelog-info');
     const changelogBtn = document.getElementById('btn-changelog');
-
-    function getOS() {
-        const userAgent = window.navigator.userAgent;
-        const platform = window.navigator.platform;
-        const os = { win: /Win/i, mac: /Mac/i, linux: /Linux/i };
-
-        if (os.win.test(platform) || os.win.test(userAgent)) return 'windows';
-        if (os.mac.test(platform) || os.mac.test(userAgent)) return 'macos';
-        if (os.linux.test(platform) || os.linux.test(userAgent)) return 'linux';
-        return 'unknown';
-    }
 
     async function get_latest_release() {
         const url = "https://api.github.com/repos/Dominiciss/PhonoScribe/releases"
@@ -239,21 +226,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (downloadBtn) {
         get_latest_release();
-    }
-
-    if (otherOsBtn && osDropdown) {
-        otherOsBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            osDropdown.classList.toggle('active');
-            otherOsBtn.classList.toggle('active');
-        });
-
-        document.addEventListener('click', function (e) {
-            if (!otherOsBtn.contains(e.target) && !osDropdown.contains(e.target)) {
-                osDropdown.classList.remove('active');
-                otherOsBtn.classList.remove('active');
-            }
-        });
     }
 
     const heroElements = document.querySelectorAll('.hero-text > *');
