@@ -26,7 +26,7 @@ import scripts.cycle_map as cycle_map
 import scripts.transcriptor as transcriptor
 import scripts.github
 
-VERSION = 'v1.3.5'
+VERSION = 'v1.3.6'
 APP_NAME = 'PhonoScribe'
 APP_ID = 'phonoscribe.transcription.utility'
 ICON = Image.open(get_url.resource_path('logo.png'))
@@ -144,6 +144,8 @@ def on_alt(event: KeyboardEvent):
             if get_url.load_variables()['show_overlay'] == 1 and persistent_overlay == True:
                 listeners.append(keyboard.on_press_key(1, hide_overlay, suppress=True))
             listeners.append(keyboard.hook(on_key))
+            listeners.append(keyboard.on_press_key(29, lambda _: None, suppress=True))
+            listeners.append(keyboard.on_press_key(56, lambda _: None, suppress=True))
             listeners.append(keyboard.on_press_key(59, toggle_window, suppress=True))
             listeners.append(keyboard.on_press_key(60, start_transcription, suppress=True))
             listeners.append(keyboard.on_press_key(72, lambda e: overlay_position(0, key=72), suppress=True))
@@ -154,6 +156,9 @@ def on_alt(event: KeyboardEvent):
                 listeners.append(keyboard.on_press_key(data['scan_code'], write_symbol, suppress=True))
         alt_time = time.perf_counter()
     elif event.event_type == keyboard.KEY_UP:
+        keyboard.send('ctrl')
+        keyboard.send('alt')
+
         clear_listeners()
         duration = round(time.perf_counter() - alt_time, 2)
 
@@ -272,7 +277,7 @@ def overlay_position(pos, first_time=False, key=0):
             display_image = original_image.resize((new_w, new_h), Image.Resampling.LANCZOS)
         else:
             display_image = original_image
-            new_w, new_h = img_w, img_h    
+            new_w, new_h = img_w, img_h
 
     tk_image = ImageTk.PhotoImage(display_image)
 
