@@ -6,11 +6,11 @@ from tkinter import messagebox
 from keyboard import KeyboardEvent
 from PIL import ImageTk
 import tkinter as tk
+import urllib.request
 import keyboard
 import pystray
 import threading
 import ctypes
-import webbrowser
 import pyperclip
 import time
 import psutil
@@ -351,6 +351,46 @@ def call_toggle():
 
     toggle_phonemes = toggle_keyboard.toggle_phonetic_keyboard(toggle_phonemes, ICON, system_tray)
 
+def download_and_install(github_version):
+    """Downloads the setup wizard in the background and runs it."""
+    
+    download_window = tk.Toplevel(menu.root)
+    download_window.title("Updating PhonoScribe")
+    
+    screen_width = menu.root.winfo_screenwidth()
+    screen_height = menu.root.winfo_screenheight()
+
+    x = (screen_width // 2) - (300 // 2)
+    y = (screen_height // 2) - (100 // 2)
+
+    download_window.geometry(f"300x100+{x}+{y}")
+    download_window.attributes('-topmost', True)
+    tk.Label(download_window, text=f"Downloading version {github_version}...\nPlease wait.", pady=20).pack()
+    download_window.update()
+
+    try:
+        asset_name = "PhonoScribe-Setup.exe"
+        
+        download_url = f"https://github.com/Dominiciss/PhonoScribe/releases/download/{github_version}/{asset_name}"
+        
+        temp_dir = os.environ.get('TEMP')
+        installer_path = os.path.join(temp_dir, asset_name)
+        
+        urllib.request.urlretrieve(download_url, installer_path)
+        
+        logging.info("Update downloaded. Launching setup and killing app.")
+        print("Update downloaded. Launching setup and killing app.")
+        
+        os.startfile(installer_path)
+        
+        system_tray.stop()
+        os._exit(0) 
+        
+    except Exception as e:
+        download_window.destroy()
+        logging.error(f"Failed to download update: {e}")
+        toast.show_toast("Failed to download the update. Check your internet connection.")
+
 def update_checker():
     """Checks for new updates in the github repository"""
     start_time = time.perf_counter()
@@ -366,10 +406,10 @@ def update_checker():
             logging.info(f"Version {github_version} found. Time ellapsed: {time.perf_counter() - start_time}")
             print(f"Version {github_version} found. Time ellapsed: {time.perf_counter() - start_time}")
 
-            user_answer = messagebox.askyesno("Confirm Action", f"Do you want to download the version {github_version}?")
+            user_answer = messagebox.askyesno("Confirm Action", f"Version {github_version} is available!\n\nDo you want to download and install it now?")
             
             if (user_answer):
-                webbrowser.open(f"https://github.com/Dominiciss/PhonoScribe/releases/tag/{github_version}")
+                threading.Thread(target=download_and_install, args=(github_version,), daemon=True).start()
         else:
             logging.info(f"Version {github_version} found was not newer than client version {VERSION}. Time ellapsed: {time.perf_counter() - start_time}")
             print(f"Version {github_version} found was not newer than client version {VERSION}. Time ellapsed: {time.perf_counter() - start_time}")
