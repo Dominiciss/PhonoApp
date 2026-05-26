@@ -26,7 +26,7 @@ import scripts.cycle_map as cycle_map
 import scripts.transcriptor as transcriptor
 import scripts.github
 
-VERSION = 'v1.3.7'
+VERSION = 'v1.3.8'
 APP_NAME = 'PhonoScribe'
 APP_ID = 'phonoscribe.transcription.utility'
 ICON = Image.open(get_url.resource_path('logo.png'))
@@ -140,6 +140,8 @@ def on_alt(event: KeyboardEvent):
                 toggle_overlay()
             if get_url.load_variables()['show_overlay'] == 1 and persistent_overlay == True:
                 listeners.append(keyboard.on_press_key(1, hide_overlay, suppress=True))
+            else:
+                listeners.append(keyboard.on_press_key(1, lambda _: None, suppress=True))
             listeners.append(keyboard.hook(on_key))
             listeners.append(keyboard.on_press_key(29, lambda _: None, suppress=True))
             listeners.append(keyboard.on_press_key(56, lambda _: None, suppress=True))
@@ -328,6 +330,7 @@ def supress_alt(event: KeyboardEvent):
     global alt_listener, alt_pressed, alt_released, enter_listener
 
     clear_listeners()
+    _hide_overlay()
     safe_unhook(alt_listener)
     safe_unhook(enter_listener)
     alt_pressed = 0
