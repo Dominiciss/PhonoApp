@@ -30,7 +30,7 @@ def create_tk():
     root.protocol("WM_DELETE_WINDOW", root.withdraw)
     root.withdraw()
     root.title("PhonoScribe")
-    root.geometry("600x500") 
+    root.geometry("625x500") 
 
     root.grid_rowconfigure(0, weight=1)
     root.grid_columnconfigure(0, weight=2) # Left side
@@ -41,6 +41,7 @@ def create_tk():
         root.iconphoto(True, app_png)
         root.iconbitmap(get_url.resource_path('logo.ico'))
     except Exception as e:
+        print(f"Could not load app icon: {e}")
         logging.error(f"Could not load app icon: {e}")
 
     # ==========================================
@@ -136,8 +137,8 @@ def create_tk():
     shortcut_text = ctk.CTkLabel(info_frame, text="Information about shortcuts:", font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"))
     shortcut_text.pack(anchor="w", padx=20, pady=(10, 5))
 
-    description = ctk.CTkLabel(info_frame, anchor="w", justify="left", wraplength=250, text="● 'Alt gr + enter' lets you toggle the phonetic keyboard.\n\n● 'Alt gr + F1' opens the main menu.\n\n● 'Alt gr + F2' lets you transcribe the information in your clipboard (the transcription is stored there).\n\n● A quick press of 'alt gr' pins the overlay to the screen.", font=ctk.CTkFont(family="Segoe UI", size=14, weight="normal"))
-    description.pack(padx=10, pady=(2, 2))
+    description = ctk.CTkLabel(info_frame, justify="left", wraplength=250, text="● 'Alt gr + enter' lets you toggle the phonetic keyboard.\n\n● 'Alt gr + F1' opens the main menu.\n\n● 'Alt gr + F2' lets you transcribe the information in your clipboard (the transcription is stored there).\n\n● A quick press of 'alt gr' pins the overlay to the screen.", font=ctk.CTkFont(family="Segoe UI", size=14, weight="normal"))
+    description.pack(padx=30, pady=(2, 2), anchor="w")
 
     # ==========================================
     # RIGHT COLUMN: TABLE & CREDITS CONTAINER

@@ -386,42 +386,75 @@ def call_toggle():
 def download_and_install(github_version):
     """Downloads the setup wizard in the background and runs it."""
     
-    download_window = tk.Toplevel(menu.root)
+    download_window = ctk.CTkToplevel(menu.root)
     download_window.title("Updating PhonoScribe")
+    download_window.protocol("WM_DELETE_WINDOW", lambda: None)
     
-    screen_width = menu.root.winfo_screenwidth()
-    screen_height = menu.root.winfo_screenheight()
-
-    x = (screen_width // 2) - (300 // 2)
-    y = (screen_height // 2) - (100 // 2)
-
-    download_window.geometry(f"300x100+{x}+{y}")
-    download_window.attributes('-topmost', True)
-    tk.Label(download_window, text=f"Downloading version {github_version}...\nPlease wait.", pady=20).pack()
-    download_window.update()
-
     try:
-        asset_name = "PhonoScribe-Setup.exe"
-        
-        download_url = f"https://github.com/Dominiciss/PhonoScribe/releases/download/{github_version}/{asset_name}"
-        
-        temp_dir = os.environ.get('TEMP')
-        installer_path = os.path.join(temp_dir, asset_name)
-        
-        urllib.request.urlretrieve(download_url, installer_path)
-        
-        logging.info("Update downloaded. Launching setup and killing app.")
-        print("Update downloaded. Launching setup and killing app.")
-        
-        os.startfile(installer_path)
-        
-        system_tray.stop()
-        os._exit(0) 
-        
+        icon_path = get_url.resource_path('logo.ico')
+        download_window.after(200, lambda: download_window.iconbitmap(icon_path))
     except Exception as e:
+        print(f"Could not load app icon: {e}")
+        logging.error(f"Could not load app icon: {e}")
+
+    window_width = 350
+    window_height = 150
+    
+    download_window.update_idletasks()
+
+    screen_width = download_window.winfo_screenwidth()
+    screen_height = download_window.winfo_screenheight()
+
+    x = (screen_width // 2) - (window_width // 2)
+    y = (screen_height // 2) - (window_height // 2)
+
+    download_window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+    download_window.attributes('-topmost', True)
+    
+    lbl = ctk.CTkLabel(
+        download_window, 
+        text=f"Downloading version {github_version}...\nPlease wait.", 
+        font=ctk.CTkFont(family="Segoe UI", size=14)
+    )
+    lbl.pack(pady=(20, 15))
+    
+    progress_bar = ctk.CTkProgressBar(download_window, width=250, mode="indeterminate", progress_color="#612b6e")
+    progress_bar.pack()
+    progress_bar.start()
+
+    def _download_task():
+        try:
+            asset_name = "PhonoScribe-Setup.exe"
+            download_url = f"https://github.com/Dominiciss/PhonoScribe/releases/download/{github_version}/{asset_name}"
+            
+            temp_dir = os.environ.get('TEMP')
+            installer_path = os.path.join(temp_dir, asset_name)
+            
+            urllib.request.urlretrieve(download_url, installer_path)
+            
+            logging.info("Update downloaded. Launching setup and killing app.")
+            print("Update downloaded. Launching setup and killing app.")
+            
+            os.startfile(installer_path)
+            
+            try:
+                system_tray.stop()
+            except:
+                pass
+                
+            os._exit(0) 
+            
+        except Exception as e:
+            logging.error(f"Failed to download update: {e}")
+            download_window.after(0, _handle_failure)
+
+    def _handle_failure():
+        """Runs on the main thread if the download fails"""
+        progress_bar.stop()
         download_window.destroy()
-        logging.error(f"Failed to download update: {e}")
         toast.show_toast("Failed to download the update. Check your internet connection.")
+
+    threading.Thread(target=_download_task, daemon=True).start()
 
 def update_checker():
     """Checks for new updates in the github repository"""
@@ -479,8 +512,8 @@ def kill_previous_instances():
 def on_closing():
     """Closes the app when the user clicks the 'X' button in the menu window"""
     global system_tray
-
-    if messagebox.askokcancel("Quit", "Do you want to quit?"):
+    
+    if messagebox.askyesno("Confirm Action", "Do you want to quit?"):
         system_tray.stop()
         menu.root.withdraw()
         menu.root.quit()
@@ -495,6 +528,11 @@ if __name__ == '__main__':
     kill_previous_instances()
 
     menu.create_tk()
+
+    menu.root.bind('<Alt_L>', lambda e: 'break')
+    menu.root.bind('<Alt_R>', lambda e: 'break')
+    menu.root.bind('<Control_L>', lambda e: 'break')
+
     create_overlay()
     toast.popup_start()
     toast.show_toast("Welcome to PhonoScribe, your Phonetic Keyboard!\nIf you have any doubts, press Alt gr + F1 to open the main menu!", 6)
