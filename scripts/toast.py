@@ -1,80 +1,127 @@
-from PIL import Image, ImageTk
-import tkinter as tk
-import threading
-import time
-import uuid
+import customtkinter as ctk
+from PIL import Image
+import logging
 
 import scripts.get_url as get_url
 import scripts.menu as menu
 
-global label_id
-global popup
-global label
-label_id = None
+# Globals
 popup = None
 label = None
+hide_job = None
+is_visible = False
 
 def popup_start():
-    """Starts the handler for popups that is withdrawn upon initiation"""
-    global popup
-    global label
+    global popup, label
 
-    popup = tk.Toplevel(menu.root)
+    popup = ctk.CTkToplevel(menu.root, fg_color="#000001")
     popup.withdraw()
-    popup.attributes("-alpha", 1)
+    popup.transient(menu.root)
     popup.overrideredirect(True)
+    popup.attributes("-transparentcolor", "#000001")
+    popup.attributes("-toolwindow", True)
     popup.attributes("-topmost", True)
-    popup.configure(bg="white")
+    popup.attributes("-alpha", 0)
 
-    header_frame = tk.Frame(popup, bg="white")
-    header_frame.pack(pady=(5, 0), padx=(10, 0), anchor="w")
+    main_frame = ctk.CTkFrame(popup, border_width=2, border_color="#612b6e", corner_radius=6)
+    main_frame.pack(fill="both", expand=True)
 
-    raw_image = Image.open(get_url.resource_path("logo.png"))
-    app_logo = ImageTk.PhotoImage(raw_image.resize((20, 20), Image.Resampling.LANCZOS), master=header_frame)
-    image_label = tk.Label(header_frame, image=app_logo, bg="white")
-    image_label.image = app_logo
-    image_label.pack(side="left", padx=(0, 5))
+    header_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+    header_frame.pack(pady=(10, 0), padx=(10, 10), fill="x")
 
-    title_label = tk.Label(header_frame, text="PhonoScribe", font=("Segoe UI", 12, "bold italic"), bg="white", foreground="#612b6e")
+    try:
+        raw_image = Image.open(get_url.resource_path("logo.png"))
+        app_logo = ctk.CTkImage(light_image=raw_image, dark_image=raw_image, size=(20, 20))
+        image_label = ctk.CTkLabel(header_frame, image=app_logo, text="")
+        image_label.pack(side="left", padx=(0, 5))
+    except Exception as e:
+        logging.error(f"Could not load toast icon: {e}")
+
+    title_font = ctk.CTkFont(family="Segoe UI", size=14, weight="bold", slant="italic")
+    title_label = ctk.CTkLabel(header_frame, text="PhonoScribe", font=title_font, text_color="#612b6e")
     title_label.pack(side="left")
 
-    custom_line = tk.Frame(popup, bg="#612b6e", height=1)
-    custom_line.pack(fill="x", padx=10, pady=0)
+    custom_line = ctk.CTkFrame(main_frame, fg_color="#612b6e", height=2)
+    custom_line.pack(fill="x", padx=10, pady=(5, 0))
 
-    label = tk.Label(popup, text="Waiting...", bg="white", fg="black",
-                         font=("Segoe UI", 10), padx=10, pady=5, anchor="w", justify="left")
-    label.pack()
+    label = ctk.CTkLabel(
+        main_frame, 
+        text="Waiting...", 
+        font=ctk.CTkFont(family="Segoe UI", size=12), 
+        justify="left",
+        wraplength=350,
+        height=0
+    )
+    label.pack(padx=15, pady=10, anchor="w")
+
+def _slide_in(current_y, target_y, current_alpha, x):
+    """Recursively moves the window up and fades it in"""
+    global popup
+    
+    if current_y > target_y:
+        current_y -= 4
+        current_alpha += 0.05
+        
+        if current_alpha > 1.0: 
+            current_alpha = 1.0
+            
+        popup.geometry(f"+{x}+{current_y}")
+        popup.attributes("-alpha", current_alpha)
+        
+        popup.after(10, _slide_in, current_y, target_y, current_alpha, x)
+    else:
+        popup.geometry(f"+{x}+{target_y}")
+        popup.attributes("-alpha", 1.0)
+
+
+def _slide_out(current_y, target_y, current_alpha, x):
+    """Recursively moves the window down and fades it out"""
+    global popup, is_visible
+    
+    if current_alpha > 0:
+        current_y += 4
+        current_alpha -= 0.08
+        
+        popup.geometry(f"+{x}+{current_y}")
+        popup.attributes("-alpha", current_alpha)
+        
+        popup.after(10, _slide_out, current_y, target_y, current_alpha, x)
+    else:
+        popup.withdraw()
+        is_visible = False
+
+
+def trigger_hide(target_y, start_y, x):
+    """Helper function triggered by the duration timer to start the slide out"""
+    _slide_out(target_y, start_y, 1.0, x)
+
 
 def show_toast(message, duration=3):
-    """Shows toast notifications for app information
+    global popup, label, hide_job, is_visible
+
+    if hide_job is not None:
+        popup.after_cancel(hide_job)
+
+    label.configure(text=message)
+    popup.update_idletasks()
     
-    :param message: message to show
-    :param duration: the number of seconds that the message will show for, default 3"""
-    def _popup():
-        global popup
-        global label
-        global label_id
-        
-        label_id = uuid.uuid4()
-
-        label.config(text=message)
-
-        popup.update_idletasks()
-        screen_width = popup.winfo_screenwidth()
-        screen_height = popup.winfo_screenheight()
-        window_width = popup.winfo_reqwidth()
-        window_height = popup.winfo_reqheight()
-        x = screen_width - window_width - 20
-        y = screen_height - window_height - 55
-        popup.geometry(f"{window_width}x{window_height}+{x}+{y}")
-
+    screen_width = popup.winfo_screenwidth()
+    screen_height = popup.winfo_screenheight()
+    window_width = popup.winfo_reqwidth()
+    window_height = popup.winfo_reqheight()
+    
+    x = screen_width - window_width - 20
+    target_y = screen_height - window_height - 55
+    start_y = target_y + 40
+    
+    if not is_visible:
+        popup.geometry(f"{window_width}x{window_height}+{x}+{start_y}")
+        popup.attributes("-alpha", 0)
         popup.deiconify()
+        is_visible = True
+        
+        _slide_in(start_y, target_y, 0.0, x)
+    else:
+        popup.geometry(f"{window_width}x{window_height}+{x}+{target_y}")
 
-        old_label_id = label_id
-
-        time.sleep(1 * duration)
-
-        if (label_id == old_label_id):
-            popup.withdraw()
-
-    threading.Thread(target=_popup, daemon=True).start()
+    hide_job = popup.after(int(duration * 1000), trigger_hide, target_y, start_y, x)

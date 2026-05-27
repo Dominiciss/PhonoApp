@@ -1,11 +1,12 @@
-# create .exe: pyinstaller --onefile --icon=logo.png --add-data="logo.png;." --add-data="shortcuts-hor.png;." --add-data="shortcuts-vert.png;." --add-data="github.png;." --add-data="linkedin.png;." --name=PhonoScribe --windowed main.py
+# create .exe: pyinstaller --onefile --icon=logo.png --add-data="logo.png;." --add-data="shortcuts-hor.png;." --add-data="shortcuts-vert.png;." --add-data="github.png;." --add-data="linkedin.png;." --add-data="logo.ico;." --name=PhonoScribe --windowed main.py
 
 # Dependency imports
-from PIL import Image
+from PIL import Image, ImageOps
 from tkinter import messagebox
 from keyboard import KeyboardEvent
 from PIL import ImageTk
 import tkinter as tk
+import customtkinter as ctk
 import urllib.request
 import keyboard
 import pystray
@@ -26,7 +27,7 @@ import scripts.cycle_map as cycle_map
 import scripts.transcriptor as transcriptor
 import scripts.github
 
-VERSION = 'v1.3.8'
+VERSION = 'v1.4.0'
 APP_NAME = 'PhonoScribe'
 APP_ID = 'phonoscribe.transcription.utility'
 ICON = Image.open(get_url.resource_path('logo.png'))
@@ -164,7 +165,7 @@ def on_alt(event: KeyboardEvent):
         clear_listeners()
         duration = round(time.perf_counter() - alt_time, 2)
 
-        if get_url.load_variables()['show_overlay'] == 1 and duration < 0.5 and last_key == event.scan_code and toggle_phonemes:
+        if get_url.load_variables()['show_overlay'] == 1 and duration < 0.2 and last_key == event.scan_code and toggle_phonemes:
             alt_pressed = 0
             if persistent_overlay == True:
                 toast.show_toast("Persistent mode already activated!\nIf you want to hide the overlay press 'alt gr + esc'")
@@ -251,7 +252,10 @@ def overlay_position(pos, first_time=False, key=0):
         last_key = key
 
     if pos == 0 or pos == 1:
-        original_image = Image.open(get_url.resource_path('shortcuts-hor.png'))
+        if (ctk.get_appearance_mode() == "Dark"):
+            original_image = ImageOps.invert(Image.open(get_url.resource_path('shortcuts-hor.png')))
+        else:
+            original_image = Image.open(get_url.resource_path('shortcuts-hor.png'))
 
         img_w, img_h = original_image.size
 
@@ -266,7 +270,10 @@ def overlay_position(pos, first_time=False, key=0):
             display_image = original_image
             new_w, new_h = img_w, img_h
     elif pos == 2 or pos == 3:
-        original_image = Image.open(get_url.resource_path('shortcuts-vert.png'))
+        if (ctk.get_appearance_mode() == "Dark"):
+            original_image = ImageOps.invert(Image.open(get_url.resource_path('shortcuts-vert.png')))
+        else:
+            original_image = Image.open(get_url.resource_path('shortcuts-vert.png'))
     
         img_w, img_h = original_image.size
 
@@ -338,7 +345,7 @@ def supress_alt(event: KeyboardEvent):
 
 def call_toggle():
     """Changes the state of toggle_phonemes and enables/disables the phonetic keyboard"""
-    global ICON, toggle_phonemes, system_tray, alt_listener, alt_released, persistent_overlay, last_key
+    global ICON, toggle_phonemes, system_tray, alt_listener, alt_released, persistent_overlay, last_key, alt_pressed
 
     last_key = 28
 
@@ -349,6 +356,9 @@ def call_toggle():
         clear_listeners()
     else:
         if keyboard.is_pressed("alt gr"):
+            keyboard.send('ctrl')
+            keyboard.send('alt')
+
             if get_url.load_variables()['show_overlay'] == 1 and not overlay.winfo_viewable():
                 toggle_overlay()
             if get_url.load_variables()['show_overlay'] == 1 and persistent_overlay == True:
@@ -366,8 +376,9 @@ def call_toggle():
                 listeners.append(keyboard.on_press_key(data['scan_code'], write_symbol, suppress=True))
 
             alt_listener = keyboard.on_release_key("alt gr", supress_alt, suppress=True)
-        else:  
+        else:
             safe_unhook(alt_listener)
+            alt_pressed = 0
             alt_listener = keyboard.hook_key("alt gr", on_alt, suppress=True)
 
     toggle_phonemes = toggle_keyboard.toggle_phonetic_keyboard(toggle_phonemes, ICON, system_tray)
@@ -471,7 +482,9 @@ def on_closing():
 
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
         system_tray.stop()
-        menu.root.destroy()
+        menu.root.withdraw()
+        menu.root.quit()
+        os._exit(0)
 
 if __name__ == '__main__':
     global alt_listener
