@@ -1,9 +1,9 @@
 import tkinter as tk
+from tkinter import messagebox
 import webbrowser
 import logging
 from PIL import Image, ImageOps
 import customtkinter as ctk
-import CTkMessagebox
 
 import scripts.startup as startup
 import scripts.get_url as get_url
@@ -59,17 +59,9 @@ def create_tk():
         is_checked = startup_var.get()
         message = "This will make PhonoScribe run automatically every time you start your computer. Do you want to proceed?" if is_checked else "This will stop PhonoScribe from running automatically at startup. Do you want to proceed?"
         
-        user_answer = CTkMessagebox.CTkMessagebox(
-            title="Confirm Action", 
-            message=message,
-            icon="question", 
-            option_1="No", 
-            option_2="Yes",
-            button_color="#612b6e",
-            button_hover_color="#823894"
-        )
+        user_answer = messagebox.askyesno("Confirm Action", message)
 
-        if user_answer.get() == "Yes":
+        if user_answer:
             startup.toggle_startup(is_checked)
         else:
             startup_var.set(not is_checked) 
@@ -91,17 +83,9 @@ def create_tk():
         is_checked = show_overlay_var.get()
         message = "This will make an overlay of the shortcuts show everytime you press alt gr. Do you want to proceed?" if is_checked else "This will stop the overlay from appearing everytime you press alt gr. Do you want to proceed?"
         
-        user_answer = CTkMessagebox.CTkMessagebox(
-            title="Confirm Action", 
-            message=message,
-            icon="question", 
-            option_1="No", 
-            option_2="Yes",
-            button_color="#612b6e",
-            button_hover_color="#823894"
-        )
-        
-        if user_answer.get() == "Yes":
+        user_answer = messagebox.askyesno("Confirm Action", message)
+
+        if user_answer:
             saved_vars['show_overlay'] = 1 if is_checked else 0
             get_url.save_variables(saved_vars)
         else:

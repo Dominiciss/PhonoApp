@@ -1,4 +1,4 @@
-# create .exe: pyinstaller --onefile --icon=logo.png --add-data="logo.png;." --add-data="shortcuts-hor.png;." --add-data="shortcuts-vert.png;." --add-data="github.png;." --add-data="linkedin.png;." --add-data="logo.ico;." --add-data=".venv/Lib/site-packages/customtkinter;customtkinter/" --name=PhonoScribe --windowed main.py
+# create .exe: pyinstaller --onefile --icon=logo.png --add-data="logo.png;." --add-data="shortcuts-hor.png;." --add-data="shortcuts-vert.png;." --add-data="github.png;." --add-data="linkedin.png;." --add-data="logo.ico;." --name=PhonoScribe --windowed main.py
 
 # Dependency imports
 from PIL import Image, ImageOps
