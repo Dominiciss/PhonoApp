@@ -109,19 +109,19 @@ def show_toast(message, duration=3):
     screen_height = popup.winfo_screenheight()
     window_width = popup.winfo_reqwidth()
     window_height = popup.winfo_reqheight()
-    
+
     x = screen_width - window_width - 20
     target_y = screen_height - window_height - 55
     start_y = target_y + 40
     
     if not is_visible:
-        popup.geometry(f"{window_width}x{window_height}+{x}+{start_y}")
+        popup.wm_geometry(f"{window_width}x{window_height}+{x}+{start_y}")
         popup.attributes("-alpha", 0)
         popup.deiconify()
         is_visible = True
         
         _slide_in(start_y, target_y, 0.0, x)
     else:
-        popup.geometry(f"{window_width}x{window_height}+{x}+{target_y}")
+        popup.wm_geometry(f"{window_width}x{window_height}+{x}+{target_y}")
 
     hide_job = popup.after(int(duration * 1000), trigger_hide, target_y, start_y, x)

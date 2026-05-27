@@ -1,4 +1,4 @@
-# create .exe: pyinstaller --onefile --icon=logo.png --add-data="logo.png;." --add-data="shortcuts-hor.png;." --add-data="shortcuts-vert.png;." --add-data="github.png;." --add-data="linkedin.png;." --add-data="logo.ico;." --name=PhonoScribe --windowed main.py
+# create .exe: pyinstaller --onefile --icon=logo.png --add-data="logo.png;." --add-data="shortcuts-hor.png;." --add-data="shortcuts-vert.png;." --add-data="github.png;." --add-data="linkedin.png;." --add-data="logo.ico;." --add-data=".venv/Lib/site-packages/customtkinter;customtkinter/" --name=PhonoScribe --windowed main.py
 
 # Dependency imports
 from PIL import Image, ImageOps
@@ -27,7 +27,7 @@ import scripts.cycle_map as cycle_map
 import scripts.transcriptor as transcriptor
 import scripts.github
 
-VERSION = 'v1.4.0'
+VERSION = 'v1.4.1'
 APP_NAME = 'PhonoScribe'
 APP_ID = 'phonoscribe.transcription.utility'
 ICON = Image.open(get_url.resource_path('logo.png'))
@@ -302,13 +302,13 @@ def overlay_position(pos, first_time=False, key=0):
     y_position = (screen_height - new_h) // 2
 
     if pos == 0:
-        overlay.geometry(f"{new_w}x{new_h}+{x_position}+10")
+        overlay.wm_geometry(f"{new_w}x{new_h}+{x_position}+10")
     elif pos == 1:
-        overlay.geometry(f"{new_w}x{new_h}+{x_position}+{screen_height - new_h - 10}")
+        overlay.wm_geometry(f"{new_w}x{new_h}+{x_position}+{screen_height - new_h - 10}")
     elif pos == 2:
-        overlay.geometry(f"{new_w}x{new_h}+10+{y_position}")
+        overlay.wm_geometry(f"{new_w}x{new_h}+10+{y_position}")
     elif pos == 3:
-        overlay.geometry(f"{new_w}x{new_h}+{screen_width - new_w - 10}+{y_position}")
+        overlay.wm_geometry(f"{new_w}x{new_h}+{screen_width - new_w - 10}+{y_position}")
 
 def create_overlay():
     """Creates the shortcuts overlay when the user presses the key alt gr"""
@@ -408,7 +408,7 @@ def download_and_install(github_version):
     x = (screen_width // 2) - (window_width // 2)
     y = (screen_height // 2) - (window_height // 2)
 
-    download_window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+    download_window.wm_geometry(f"{window_width}x{window_height}+{x}+{y}")
     download_window.attributes('-topmost', True)
     
     lbl = ctk.CTkLabel(
@@ -418,7 +418,7 @@ def download_and_install(github_version):
     )
     lbl.pack(pady=(20, 15))
     
-    progress_bar = ctk.CTkProgressBar(download_window, width=250, mode="indeterminate", progress_color="#612b6e")
+    progress_bar = ctk.CTkProgressBar(download_window, width=200, mode="indeterminate", progress_color="#612b6e")
     progress_bar.pack()
     progress_bar.start()
 
@@ -519,11 +519,26 @@ def on_closing():
         menu.root.quit()
         os._exit(0)
 
+def window_logic():
+    import sys
+
+    if sys.platform == "win32":
+        import ctypes
+        try:
+            ctypes.windll.shcore.SetProcessDpiAwareness(1)
+        except Exception:
+            try:
+                ctypes.windll.user32.SetProcessDPIAware()
+            except Exception:
+                pass
+
 if __name__ == '__main__':
     global alt_listener
     global alt_released
     alt_listener = None
     alt_released = None
+
+    window_logic()
 
     kill_previous_instances()
 
